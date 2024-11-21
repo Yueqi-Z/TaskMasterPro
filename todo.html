@@ -18,6 +18,7 @@
     </header>
     <main>
         <h2>To-Do List</h2>
+        <!-- Add Task Form -->
         <form id="add-task-form">
             <input type="text" name="description" placeholder="Task description" required />
             <input type="date" name="dueDate" required />
@@ -28,7 +29,27 @@
             </select>
             <button type="submit">Add Task</button>
         </form>
+    
+        <!-- Filter and Search Section -->
+        <section>
+            <div>
+                <label for="filter-priority">Filter by Priority:</label>
+                <select id="filter-priority">
+                    <option value="All">All</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div>
+                <label for="search-tasks">Search Tasks:</label>
+                <input type="text" id="search-tasks" placeholder="Search by description">
+            </div>
+        </section>
+    
+        <!-- Task List -->
         <ul class="task-list"></ul>
     </main>
+    
 </body>
 </html>
