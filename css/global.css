@@ -13,6 +13,13 @@
     --warning-color: #eab308;
     --danger-color: #ef4444;
     
+    /* Header Theme Variables - Light (Default) */
+    --header-bg: var(--background-dark);
+    --header-text: var(--text-primary);
+    --header-border: var(--border-color);
+    --nav-hover-bg: rgba(37, 99, 235, 0.1);
+    --nav-active-bg: rgba(37, 99, 235, 0.15);
+    
     /* Spacing */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -24,6 +31,24 @@
     --border-radius-sm: 0.25rem;
     --border-radius-md: 0.5rem;
     --border-radius-lg: 0.75rem;
+  }
+  
+  /* Dark Theme Header Variables */
+  .global-header.theme-dark {
+    --header-bg: #1a1a1a;
+    --header-text: #ffffff;
+    --header-border: #333333;
+    --nav-hover-bg: rgba(255, 255, 255, 0.1);
+    --nav-active-bg: rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Light Theme Header Variables */
+  .global-header.theme-light {
+    --header-bg: var(--background-dark);
+    --header-text: var(--text-primary);
+    --header-border: var(--border-color);
+    --nav-hover-bg: rgba(37, 99, 235, 0.1);
+    --nav-active-bg: rgba(37, 99, 235, 0.15);
   }
   
   * {
@@ -41,13 +66,15 @@
   
   /* Header and Navigation */
   .global-header {
-    background-color: var(--background-dark);
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
   .header-content {
@@ -74,7 +101,7 @@
   
   .main-nav a {
     text-decoration: none;
-    color: var(--text-secondary);
+    color: var(--header-text);
     font-weight: 500;
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--border-radius-md);
@@ -82,13 +109,13 @@
   }
   
   .main-nav a:hover {
-    color: var(--primary-color);
-    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--header-text);
+    background-color: var(--nav-hover-bg);
   }
   
   .main-nav a.active {
-    color: var(--primary-color);
-    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--header-text);
+    background-color: var(--nav-active-bg);
   }
   
   .user-menu {
@@ -99,7 +126,7 @@
   
   .user-name {
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--header-text);
   }
   
   /* Button Base Styles */
@@ -150,12 +177,13 @@
   
   .btn-text {
     background-color: transparent;
-    color: var(--text-secondary);
+    color: var(--header-text);
+    transition: all 0.2s ease;
   }
   
   .btn-text:hover {
-    background-color: var(--background-light);
-    color: var(--text-primary);
+    background-color: var(--nav-hover-bg);
+    color: var(--header-text);
   }
   
   .btn-danger-text {
@@ -207,7 +235,7 @@
   
   /* Form Elements */
   .form-group {
-    padding: var(--spacing-md) var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
   }
   
   .form-group label {
@@ -284,6 +312,10 @@
     font-weight: 600;
   }
   
+  .modal-body {
+    padding: var(--spacing-xl);
+  }
+  
   .modal-close {
     background: none;
     border: none;
@@ -353,5 +385,22 @@
     .main-content {
         padding: var(--spacing-md);
     }
+  
+    .modal-content {
+        margin: var(--spacing-sm);
+    }
   }
   
+  @media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+  
+    .form-actions .btn {
+        width: 100%;
+    }
+  
+    .modal-body {
+        padding: var(--spacing-md);
+    }
+  }
