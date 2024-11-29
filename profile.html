@@ -3,21 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskMaster Pro - Profile</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Profile - TaskMaster Pro</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="todo.html">To-Do List</a>
-            <a href="calendar.html">Calendar</a>
-            <a href="profile.html">Profile</a>
-        </nav>
+    <!-- Global Header -->
+    <header class="global-header">
+        <div class="header-content">
+            <h1 class="logo">TaskMaster Pro</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Tasks</a></li>
+                    <li><a href="calendar.html">Calendar</a></li>
+                    <li><a href="profile.html" class="active">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-menu">
+                <span class="user-name">John Doe</span>
+                <button class="btn btn-text">Logout</button>
+            </div>
+        </div>
     </header>
-    <main>
-        <h2>User Profile</h2>
-        <p>[Profile details placeholder]</p>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Profile Section -->
+        <section class="profile-section">
+            <h2>User Profile</h2>
+            <div class="profile-info">
+                <!-- User Info Grid -->
+                <div class="user-info-grid">
+                    <!-- Display Name -->
+                    <div class="profile-field">
+                        <label>Display Name</label>
+                        <div class="editable-field">
+                            <span class="profile-name">John Doe</span>
+                            <button class="btn btn-icon edit-btn" aria-label="Edit name">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="profile-field">
+                        <label>Email</label>
+                        <div class="editable-field">
+                            <span class="profile-email">john.doe@example.com</span>
+                            <button class="btn btn-icon edit-btn" aria-label="Edit email">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section class="stats-section">
+            <h2>Task Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Tasks</h3>
+                    <span class="stat-number">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Tasks</h3>
+                    <span class="stat-number">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed Tasks</h3>
+                    <span class="stat-number">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Due This Week</h3>
+                    <span class="stat-number">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="settings-section">
+            <div class="section-header">
+                <h2>Settings</h2>
+                <button class="btn btn-icon section-toggle" aria-label="Toggle section">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 15l-6-6-6 6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="section-content">
+                <div class="settings-options">
+                    <!-- Theme Toggle -->
+                    <div class="setting-item">
+                        <label>Theme</label>
+                        <div class="theme-toggle-wrapper">
+                            <select class="theme-toggle">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Reset Data -->
+                    <div class="setting-item">
+                        <button class="btn btn-danger-text reset-data-btn">
+                            Reset All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <!-- Email Change Confirmation Modal -->
+    <div id="emailModal" class="modal" hidden>
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change Email</h2>
+                <button class="modal-close btn btn-icon" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="warning-text">Warning: Changing your email will reset all your data!</p>
+                <div class="form-group">
+                    <label for="newEmail">New Email</label>
+                    <input type="email" id="newEmail" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary cancel-btn">Cancel</button>
+                <button class="btn btn-primary confirm-email-btn">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Data Confirmation Modal -->
+    <div id="resetModal" class="modal" hidden>
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Data</h2>
+                <button class="modal-close btn btn-icon" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="warning-text">Warning: This will permanently delete all your tasks and settings!</p>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary cancel-btn">Cancel</button>
+                <button class="btn btn-danger-text confirm-reset-btn">Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/profile.js"></script>
 </body>
 </html>
