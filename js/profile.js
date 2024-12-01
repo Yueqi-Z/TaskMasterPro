@@ -1,17 +1,14 @@
 /**
  * profile.js - TaskMaster Pro Profile Implementation
- * Version: 1.0.0
+ * Version: 1.1.0
  * 
  * Change Log:
- * 1.0.0 - Initial implementation with core profile functionality
- * - User profile management
- * - Theme switching for header
- * - Statistics calculation
- * - Collapsible settings
- * - Data reset functionality
+ * 1.1.0 - Modified email update to preserve task data
+ *       - Updated statistics to show overdue tasks
+ *       - Separated data reset functionality
  */
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3'; // Shared with other components
 const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
 
@@ -41,11 +38,9 @@ class ProfileManager {
         themeToggle?.addEventListener('change', (e) => this.handleThemeChange(e.target.value));
 
         // Profile editing
-        const editNameBtn = document.querySelector('.profile-field .edit-btn');
-        const editEmailBtn = document.querySelectorAll('.profile-field .edit-btn')[1];
-        
-        editNameBtn?.addEventListener('click', () => this.startEditing('name'));
-        editEmailBtn?.addEventListener('click', () => this.openModal('emailModal'));
+        const editBtns = document.querySelectorAll('.edit-btn');
+        editBtns[0]?.addEventListener('click', () => this.startEditing('name'));
+        editBtns[1]?.addEventListener('click', () => this.openModal('emailModal'));
 
         // Modal handlers
         this.initializeModalHandlers();
@@ -83,15 +78,7 @@ class ProfileManager {
 
     toggleSettingsSection(section) {
         if (!section) return;
-        
-        const isCollapsed = section.classList.contains('collapsed');
-        const content = section.querySelector('.section-content');
-        
-        if (isCollapsed) {
-            section.classList.remove('collapsed');
-        } else {
-            section.classList.add('collapsed');
-        }
+        section.classList.toggle('collapsed');
     }
 
     startEditing(field) {
@@ -138,13 +125,19 @@ class ProfileManager {
         const newEmail = document.getElementById('newEmail')?.value.trim();
         if (!newEmail) return;
 
+        // Update only user data, preserve tasks
         this.user.email = newEmail;
         this.saveUserData();
         
-        // Reset all data as warned
+        this.showMessage('Email updated successfully', 'success');
+        this.closeModal('emailModal');
+        this.updateUserDisplay();
+    }
+
+    handleDataReset() {
+        // Clear all data including user preferences
         localStorage.clear();
-        this.showMessage('Email updated and data reset. Refreshing page...', 'success');
-        
+        this.showMessage('All data has been reset. Refreshing page...', 'success');
         setTimeout(() => window.location.reload(), 1500);
     }
 
@@ -157,12 +150,6 @@ class ProfileManager {
             header.classList.remove('theme-light', 'theme-dark');
             header.classList.add(`theme-${theme}`);
         }
-    }
-
-    handleDataReset() {
-        localStorage.clear();
-        this.showMessage('All data has been reset. Refreshing page...', 'success');
-        setTimeout(() => window.location.reload(), 1500);
     }
 
     updateStatistics() {
@@ -178,23 +165,24 @@ class ProfileManager {
 
     calculateTaskStatistics(tasks) {
         const today = new Date();
-        const weekFromNow = new Date(today);
-        weekFromNow.setDate(today.getDate() + 7);
+        today.setHours(0, 0, 0, 0);  // Reset time to start of day
 
         return {
             total: tasks.length,
             pending: tasks.filter(task => !task.completed).length,
             completed: tasks.filter(task => task.completed).length,
-            dueThisWeek: tasks.filter(task => {
+            overdue: tasks.filter(task => {
+                if (task.completed) return false;
                 const dueDate = new Date(task.dueDate);
-                return dueDate >= today && dueDate <= weekFromNow;
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
             }).length
         };
     }
 
     renderStatistics(stats) {
         const statElements = document.querySelectorAll('.stat-number');
-        const statValues = [stats.total, stats.pending, stats.completed, stats.dueThisWeek];
+        const statValues = [stats.total, stats.pending, stats.completed, stats.overdue];
 
         statElements.forEach((element, index) => {
             if (element && typeof statValues[index] !== 'undefined') {

@@ -8,10 +8,9 @@
     <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
-    <!-- Global Header -->
     <header class="global-header">
         <div class="header-content">
-            <h1 class="logo">TaskMaster Pro</h1>
+            <h1 id="taskmaster-pro" class="logo">TaskMaster Pro</h1>
             <nav class="main-nav">
                 <ul>
                     <li><a href="index.html">Tasks</a></li>
@@ -26,37 +25,31 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Profile Section -->
-        <section class="profile-section">
+    <main class="main-content" role="main">
+        <section class="section profile-section">
             <h2>User Profile</h2>
             <div class="profile-info">
-                <!-- User Info Grid -->
                 <div class="user-info-grid">
-                    <!-- Display Name -->
                     <div class="profile-field">
                         <label>Display Name</label>
                         <div class="editable-field">
                             <span class="profile-name">John Doe</span>
-                            <button class="btn btn-icon edit-btn" aria-label="Edit name">
+                            <button class="btn btn-edit btn-icon edit-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
                             </button>
                         </div>
                     </div>
-
-                    <!-- Email -->
                     <div class="profile-field">
                         <label>Email</label>
                         <div class="editable-field">
                             <span class="profile-email">john.doe@example.com</span>
-                            <button class="btn btn-icon edit-btn" aria-label="Edit email">
+                            <button class="btn btn-edit btn-icon edit-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
                             </button>
                         </div>
@@ -65,8 +58,7 @@
             </div>
         </section>
 
-        <!-- Statistics Section -->
-        <section class="stats-section">
+        <section class="section stats-section">
             <h2>Task Statistics</h2>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -82,26 +74,23 @@
                     <span class="stat-number">0</span>
                 </div>
                 <div class="stat-card">
-                    <h3>Due This Week</h3>
+                    <h3>Overdue Tasks</h3>
                     <span class="stat-number">0</span>
                 </div>
             </div>
         </section>
 
-        <!-- Settings Section -->
-        <section class="settings-section collapsed">
+        <section class="section settings-section collapsed">
             <div class="section-header">
                 <h2>Settings</h2>
-                <button class="btn btn-icon section-toggle" aria-label="Toggle section">
+                <button class="section-toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
+                        <path d="M6 9l6 6 6-6" />
                     </svg>
                 </button>
             </div>
-
             <div class="section-content">
                 <div class="settings-options">
-                    <!-- Theme Toggle -->
                     <div class="setting-item">
                         <label>Theme</label>
                         <div class="theme-toggle-wrapper">
@@ -111,28 +100,23 @@
                             </select>
                         </div>
                     </div>
-
-                    <!-- Reset Data -->
                     <div class="setting-item">
-                        <button class="btn btn-danger-text reset-data-btn">
-                            Reset All Data
-                        </button>
+                        <button class="btn btn-danger-text reset-data-btn">Reset All Data</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Email Change Confirmation Modal -->
     <div id="emailModal" class="modal" hidden>
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Change Email</h2>
-                <button class="modal-close btn btn-icon" aria-label="Close modal">×</button>
+                <button class="modal-close">×</button>
             </div>
             <div class="modal-body">
-                <p class="warning-text">Warning: Changing your email will reset all your data!</p>
+                <p>Are you sure you want to change your email address?</p>
                 <div class="form-group">
                     <label for="newEmail">New Email</label>
                     <input type="email" id="newEmail" required>
@@ -145,16 +129,15 @@
         </div>
     </div>
 
-    <!-- Reset Data Confirmation Modal -->
     <div id="resetModal" class="modal" hidden>
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Reset Data</h2>
-                <button class="modal-close btn btn-icon" aria-label="Close modal">×</button>
+                <button class="modal-close">×</button>
             </div>
             <div class="modal-body">
-                <p class="warning-text">Warning: This will permanently delete all your tasks and settings!</p>
+                <p>Warning: This will permanently delete all your tasks, settings, and profile information!</p>
             </div>
             <div class="form-actions">
                 <button class="btn btn-secondary cancel-btn">Cancel</button>
