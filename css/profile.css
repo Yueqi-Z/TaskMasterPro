@@ -11,6 +11,13 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.theme-dark .profile-section,
+.theme-dark .stats-section,
+.theme-dark .settings-section {
+    background-color: var(--background-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 /* Section Headers */
 .section-header {
     display: flex;
@@ -56,6 +63,11 @@ h2 {
     border: 1px solid var(--border-color);
 }
 
+.theme-dark .editable-field {
+    background-color: var(--background-light);
+    border-color: var(--border-color);
+}
+
 .editable-field span {
     flex-grow: 1;
     font-size: 1rem;
@@ -72,6 +84,12 @@ h2 {
     outline: none;
 }
 
+.theme-dark .edit-input {
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    border-color: var(--primary-color);
+}
+
 /* Statistics Grid */
 .stats-grid {
     display: grid;
@@ -86,6 +104,10 @@ h2 {
     border-radius: var(--border-radius-md);
     text-align: center;
     transition: transform 0.2s ease;
+}
+
+.theme-dark .stat-card {
+    background-color: var(--background-light);
 }
 
 .stat-card:hover {
@@ -166,6 +188,12 @@ h2 {
     color: var(--text-primary);
 }
 
+.theme-dark .theme-toggle {
+    background-color: var(--background-light);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
 /* Warning Messages */
 .warning-text {
     color: var(--danger-color);
@@ -175,6 +203,10 @@ h2 {
     margin-bottom: var(--spacing-lg);
 }
 
+.theme-dark .warning-text {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
 /* Success Message */
 .success-message {
     color: var(--success-color);
@@ -182,6 +214,10 @@ h2 {
     padding: var(--spacing-md);
     border-radius: var(--border-radius-md);
     margin-bottom: var(--spacing-lg);
+}
+
+.theme-dark .success-message {
+    background-color: rgba(34, 197, 94, 0.2);
 }
 
 /* Reset Button */

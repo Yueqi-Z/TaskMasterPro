@@ -1,16 +1,18 @@
 /**
  * profile.js - TaskMaster Pro Profile Implementation
- * Version: 1.1.0
+ * Version: 1.2.0
  * 
  * Change Log:
+ * 1.2.0 - Added global theme management
  * 1.1.0 - Modified email update to preserve task data
  *       - Updated statistics to show overdue tasks
  *       - Separated data reset functionality
  */
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3'; // Shared with other components
 const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
+const THEME_STORAGE_KEY = 'taskmaster_theme';
 
 class ProfileManager {
     constructor() {
@@ -18,13 +20,14 @@ class ProfileManager {
         this.user = {
             displayName: 'John Doe',
             email: 'john.doe@example.com',
-            theme: 'light'
+            theme: localStorage.getItem(THEME_STORAGE_KEY) || 'light'
         };
         
         // Initialize the application
         this.loadUserData();
         this.initializeEventListeners();
         this.updateStatistics();
+        this.initializeTheme();
     }
 
     initializeEventListeners() {
@@ -35,7 +38,7 @@ class ProfileManager {
 
         // Theme toggle
         const themeToggle = document.querySelector('.theme-toggle');
-        themeToggle?.addEventListener('change', (e) => this.handleThemeChange(e.target.value));
+        themeToggle?.addEventListener('change', (e) => this.handleThemeChange(e));
 
         // Profile editing
         const editBtns = document.querySelectorAll('.edit-btn');
@@ -48,6 +51,29 @@ class ProfileManager {
         // Reset data button
         const resetDataBtn = document.querySelector('.reset-data-btn');
         resetDataBtn?.addEventListener('click', () => this.openModal('resetModal'));
+    }
+
+    initializeTheme() {
+        const savedTheme = this.user.theme;
+        this.applyTheme(savedTheme);
+        
+        const themeToggle = document.querySelector('.theme-toggle');
+        if (themeToggle) {
+            themeToggle.value = savedTheme;
+        }
+    }
+
+    applyTheme(theme) {
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add(`theme-${theme}`);
+        this.user.theme = theme;
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+    }
+
+    handleThemeChange(e) {
+        const newTheme = e.target.value;
+        this.applyTheme(newTheme);
+        this.saveUserData();
     }
 
     initializeModalHandlers() {
@@ -125,7 +151,6 @@ class ProfileManager {
         const newEmail = document.getElementById('newEmail')?.value.trim();
         if (!newEmail) return;
 
-        // Update only user data, preserve tasks
         this.user.email = newEmail;
         this.saveUserData();
         
@@ -135,21 +160,9 @@ class ProfileManager {
     }
 
     handleDataReset() {
-        // Clear all data including user preferences
         localStorage.clear();
         this.showMessage('All data has been reset. Refreshing page...', 'success');
         setTimeout(() => window.location.reload(), 1500);
-    }
-
-    handleThemeChange(theme) {
-        this.user.theme = theme;
-        this.saveUserData();
-        
-        const header = document.querySelector('.global-header');
-        if (header) {
-            header.classList.remove('theme-light', 'theme-dark');
-            header.classList.add(`theme-${theme}`);
-        }
     }
 
     updateStatistics() {
@@ -165,7 +178,7 @@ class ProfileManager {
 
     calculateTaskStatistics(tasks) {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);  // Reset time to start of day
+        today.setHours(0, 0, 0, 0);
 
         return {
             total: tasks.length,
@@ -207,7 +220,6 @@ class ProfileManager {
             if (savedUser) {
                 this.user = { ...this.user, ...JSON.parse(savedUser) };
                 this.updateUserDisplay();
-                this.applyTheme();
             }
         } catch (error) {
             console.error('Error loading user data:', error);
@@ -224,27 +236,12 @@ class ProfileManager {
     }
 
     updateUserDisplay() {
-        // Update all instances of user name
         document.querySelectorAll('.user-name').forEach(element => {
             element.textContent = this.user.displayName;
         });
 
         document.querySelector('.profile-name').textContent = this.user.displayName;
         document.querySelector('.profile-email').textContent = this.user.email;
-    }
-
-    applyTheme() {
-        const header = document.querySelector('.global-header');
-        if (header) {
-            header.classList.remove('theme-light', 'theme-dark');
-            header.classList.add(`theme-${this.user.theme}`);
-        }
-
-        // Update theme toggle if it exists
-        const themeToggle = document.querySelector('.theme-toggle');
-        if (themeToggle) {
-            themeToggle.value = this.user.theme;
-        }
     }
 
     showMessage(message, type = 'success') {
