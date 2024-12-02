@@ -30,7 +30,46 @@ class TaskManager {
         this.initializeTheme();
         this.initializeEventListeners();
         this.initializeTaskCounters();
+		this.initializeUserSync();
     }
+	initializeUserSync() {
+		// Initial load
+		this.updateUserDisplay();
+    
+		// Listen for storage events
+		window.addEventListener('storage', (e) => {
+			console.log('Storage event:', e.key, e.newValue);
+			if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
+				this.updateUserDisplay();
+			}
+		});
+
+		// Listen for direct events
+		window.addEventListener('usernameUpdated', () => {
+			console.log('Username updated event received');
+			this.updateUserDisplay();
+		});
+	}
+	updateUserDisplay() {
+		try {
+			const userData = localStorage.getItem(USER_STORAGE_KEY);
+			console.log('Updating user display with stored data:', userData);
+        
+			if (userData) {
+				const user = JSON.parse(userData);
+				const userNameElements = document.querySelectorAll('.user-name');
+            
+				userNameElements.forEach(element => {
+					if (element) {
+						element.textContent = user.displayName;
+						console.log('Updated element:', element);
+					}
+				});
+			}
+		} catch (error) {
+			console.error('Error updating user display:', error);
+		}
+	}
 
     initializeTheme() {
         // Load and apply saved theme
@@ -655,5 +694,6 @@ class TaskManager {
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     window.taskManager = new TaskManager();
+    window.taskManager.initializeUserSync(); // Explicitly call after initialization
     console.log(`TaskMaster Pro v${APP_VERSION} initialized`);
 });

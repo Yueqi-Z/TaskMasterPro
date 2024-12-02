@@ -227,6 +227,36 @@ h2 {
     margin-top: var(--spacing-md);
 }
 
+/* Logout Button Styling */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    color: var(--danger-color);
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger-color);
+}
+
+.theme-dark .logout-btn:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+.logout-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .user-info-grid {

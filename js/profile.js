@@ -15,20 +15,35 @@ const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
 const THEME_STORAGE_KEY = 'taskmaster_theme';
 
 class ProfileManager {
-    constructor() {
-        // Core properties
-        this.user = {
-            displayName: 'John Doe',
-            email: 'john.doe@example.com',
-            theme: localStorage.getItem(THEME_STORAGE_KEY) || 'light'
-        };
-        
-        // Initialize the application
-        this.loadUserData();
-        this.initializeEventListeners();
-        this.updateStatistics();
-        this.initializeTheme();
-    }
+constructor() {
+    // Core properties
+    this.user = {
+        displayName: 'John Doe',
+        email: 'john.doe@example.com',
+        theme: localStorage.getItem(THEME_STORAGE_KEY) || 'light'
+    };
+
+    // Add storage event listener
+    window.addEventListener('storage', (e) => {
+        console.log('Storage event received:', e.key); // Debug log
+        if (e.key === USER_STORAGE_KEY) {
+            this.loadUserData();
+            this.updateUserDisplay();
+        }
+    });
+
+    // Initialize the application
+    this.loadUserData();
+    console.log('Initial user data loaded:', this.user); // Debug log
+    
+    this.initializeEventListeners();
+    this.updateStatistics();
+    this.initializeTheme();
+    
+    // Ensure initial display is updated
+    this.updateUserDisplay();
+    console.log('Profile Manager initialized with user:', this.user); // Debug log
+}
 
     initializeEventListeners() {
         // Settings section toggle
@@ -129,23 +144,28 @@ class ProfileManager {
         });
     }
 
-    finishEditing(input, field) {
-        const newValue = input.value.trim();
-        if (!newValue) return;
+finishEditing(input, field) {
+    const newValue = input.value.trim();
+    if (!newValue) return;
 
-        const span = document.createElement('span');
-        span.className = field === 'name' ? 'profile-name' : 'profile-email';
-        span.textContent = newValue;
+    const span = document.createElement('span');
+    span.className = field === 'name' ? 'profile-name' : 'profile-email';
+    span.textContent = newValue;
 
-        input.replaceWith(span);
+    input.replaceWith(span);
 
-        if (field === 'name') {
-            this.user.displayName = newValue;
-            this.updateUserDisplay();
-            this.saveUserData();
-            this.showMessage('Name updated successfully', 'success');
-        }
+    if (field === 'name') {
+        this.user.displayName = newValue;
+        this.updateUserDisplay();
+        this.saveUserData();
+        
+        // Dispatch a custom event for cross-tab communication
+        const event = new Event('usernameUpdated');
+        window.dispatchEvent(event);
+        
+        this.showMessage('Name updated successfully', 'success');
     }
+}
 
     handleEmailChange() {
         const newEmail = document.getElementById('newEmail')?.value.trim();
@@ -226,23 +246,43 @@ class ProfileManager {
         }
     }
 
-    saveUserData() {
-        try {
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user));
-        } catch (error) {
-            console.error('Error saving user data:', error);
-            this.showMessage('Error saving changes', 'error');
-        }
-    }
+	saveUserData() {
+		try {
+			// Save to localStorage
+			localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user));
+        
+			// Force a storage event for cross-tab communication
+			localStorage.setItem('lastUserUpdate', new Date().toISOString());
+			localStorage.removeItem('lastUserUpdate'); // Cleanup
+        
+			// Log for debugging
+			console.log('User data saved:', this.user);
+		} catch (error) {
+			console.error('Error saving user data:', error);
+			this.showMessage('Error saving changes', 'error');
+		}
+	}
+	updateUserDisplay() {
+		// Log for debugging
+		console.log('Updating user display with:', this.user);
+    
+		const userNameElements = document.querySelectorAll('.user-name');
+		userNameElements.forEach(element => {
+			if (element) {
+				element.textContent = this.user.displayName;
+			}
+		});
 
-    updateUserDisplay() {
-        document.querySelectorAll('.user-name').forEach(element => {
-            element.textContent = this.user.displayName;
-        });
+		const profileNameElement = document.querySelector('.profile-name');
+		if (profileNameElement) {
+			profileNameElement.textContent = this.user.displayName;
+		}
 
-        document.querySelector('.profile-name').textContent = this.user.displayName;
-        document.querySelector('.profile-email').textContent = this.user.email;
-    }
+		const profileEmailElement = document.querySelector('.profile-email');
+		if (profileEmailElement) {
+			profileEmailElement.textContent = this.user.email;
+		}
+	}
 
     showMessage(message, type = 'success') {
         const messageDiv = document.createElement('div');
