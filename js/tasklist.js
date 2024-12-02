@@ -13,6 +13,7 @@ const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';
 const COUNTER_STORAGE_KEY = 'taskmaster_counters_v1_0';
 const THEME_STORAGE_KEY = 'taskmaster_theme';
 const MAX_TASKS = 100;
+const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
 
 class TaskManager {
     constructor() {
@@ -32,10 +33,11 @@ class TaskManager {
         this.initializeTaskCounters();
 		this.initializeUserSync();
     }
+
 	initializeUserSync() {
 		// Initial load
 		this.updateUserDisplay();
-    
+		
 		// Listen for storage events
 		window.addEventListener('storage', (e) => {
 			console.log('Storage event:', e.key, e.newValue);
@@ -50,15 +52,16 @@ class TaskManager {
 			this.updateUserDisplay();
 		});
 	}
+
 	updateUserDisplay() {
 		try {
 			const userData = localStorage.getItem(USER_STORAGE_KEY);
 			console.log('Updating user display with stored data:', userData);
-        
+			
 			if (userData) {
 				const user = JSON.parse(userData);
 				const userNameElements = document.querySelectorAll('.user-name');
-            
+				
 				userNameElements.forEach(element => {
 					if (element) {
 						element.textContent = user.displayName;
@@ -70,6 +73,7 @@ class TaskManager {
 			console.error('Error updating user display:', error);
 		}
 	}
+
 
     initializeTheme() {
         // Load and apply saved theme

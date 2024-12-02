@@ -45,6 +45,40 @@ constructor() {
     console.log('Profile Manager initialized with user:', this.user); // Debug log
 }
 
+	initializeUserSync() {
+		// Initial load
+		this.updateUserDisplay();
+    
+		// Listen for storage events
+		window.addEventListener('storage', (e) => {
+			if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
+				this.updateUserDisplay();
+			}
+		});
+
+		// Listen for direct events
+		window.addEventListener('usernameUpdated', () => {
+			this.updateUserDisplay();
+		});
+	}
+
+	updateUserDisplay() {
+		try {
+			const userData = localStorage.getItem(USER_STORAGE_KEY);
+			if (userData) {
+				const user = JSON.parse(userData);
+				const userNameElements = document.querySelectorAll('.user-name');
+				userNameElements.forEach(element => {
+					if (element) {
+						element.textContent = user.displayName;
+					}
+				});
+			}
+		} catch (error) {
+			console.error('Error updating user display:', error);
+		}
+	}
+
     initializeEventListeners() {
         // Settings section toggle
         const settingsSection = document.querySelector('.settings-section');
@@ -144,28 +178,28 @@ constructor() {
         });
     }
 
-finishEditing(input, field) {
-    const newValue = input.value.trim();
-    if (!newValue) return;
+	finishEditing(input, field) {
+		const newValue = input.value.trim();
+		if (!newValue) return;
 
-    const span = document.createElement('span');
-    span.className = field === 'name' ? 'profile-name' : 'profile-email';
-    span.textContent = newValue;
+		const span = document.createElement('span');
+		span.className = field === 'name' ? 'profile-name' : 'profile-email';
+		span.textContent = newValue;
 
-    input.replaceWith(span);
+		input.replaceWith(span);
 
-    if (field === 'name') {
-        this.user.displayName = newValue;
-        this.updateUserDisplay();
-        this.saveUserData();
+		if (field === 'name') {
+			this.user.displayName = newValue;
+			this.updateUserDisplay();
+			this.saveUserData();
         
-        // Dispatch a custom event for cross-tab communication
-        const event = new Event('usernameUpdated');
-        window.dispatchEvent(event);
+			// Dispatch a custom event for cross-tab communication
+			const event = new Event('usernameUpdated');
+			window.dispatchEvent(event);
         
-        this.showMessage('Name updated successfully', 'success');
-    }
-}
+			this.showMessage('Name updated successfully', 'success');
+		}
+	}
 
     handleEmailChange() {
         const newEmail = document.getElementById('newEmail')?.value.trim();
@@ -262,6 +296,7 @@ finishEditing(input, field) {
 			this.showMessage('Error saving changes', 'error');
 		}
 	}
+	
 	updateUserDisplay() {
 		// Log for debugging
 		console.log('Updating user display with:', this.user);
