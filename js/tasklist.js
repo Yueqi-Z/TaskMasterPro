@@ -1,14 +1,16 @@
 /**
  * tasklist.js - TaskMaster Pro Task Management Implementation
- * Version: 1.5.0
+ * Version: 1.5.1
  * 
  * Change Log:
+ * 1.5.1 - Added smooth theme transition and improved synchronization
  * 1.5.0 - Added theme support and synchronization
  * 1.4.0 - Added task counter persistence
  * 1.3.0 - Added task limit and warnings
  */
 
-const APP_VERSION = '1.5.0';
+// Global Constants
+const APP_VERSION = '1.5.1';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';
 const COUNTER_STORAGE_KEY = 'taskmaster_counters_v1_0';
 const THEME_STORAGE_KEY = 'taskmaster_theme';
@@ -31,79 +33,88 @@ class TaskManager {
         this.initializeTheme();
         this.initializeEventListeners();
         this.initializeTaskCounters();
-		this.initializeUserSync();
+        this.initializeUserSync();
     }
 
-	initializeUserSync() {
-		// Initial load
-		this.updateUserDisplay();
-		
-		// Listen for storage events
-		window.addEventListener('storage', (e) => {
-			console.log('Storage event:', e.key, e.newValue);
-			if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
-				this.updateUserDisplay();
-			}
-		});
+    /**
+     * Initialize user synchronization across tabs
+     */
+    initializeUserSync() {
+        // Initial load
+        this.updateUserDisplay();
+        
+        // Listen for storage events
+        window.addEventListener('storage', (e) => {
+            console.log('Storage event:', e.key, e.newValue);
+            if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
+                this.updateUserDisplay();
+            }
+        });
 
-		// Listen for direct events
-		window.addEventListener('usernameUpdated', () => {
-			console.log('Username updated event received');
-			this.updateUserDisplay();
-		});
-	}
+        // Listen for direct events
+        window.addEventListener('usernameUpdated', () => {
+            console.log('Username updated event received');
+            this.updateUserDisplay();
+        });
+    }
 
-	updateUserDisplay() {
-		try {
-			const userData = localStorage.getItem(USER_STORAGE_KEY);
-			console.log('Updating user display with stored data:', userData);
-			
-			if (userData) {
-				const user = JSON.parse(userData);
-				const userNameElements = document.querySelectorAll('.user-name');
-				
-				userNameElements.forEach(element => {
-					if (element) {
-						element.textContent = user.displayName;
-						console.log('Updated element:', element);
-					}
-				});
-			}
-		} catch (error) {
-			console.error('Error updating user display:', error);
-		}
-	}
+    /**
+     * Update user display across all elements
+     */
+    updateUserDisplay() {
+        try {
+            const userData = localStorage.getItem(USER_STORAGE_KEY);
+            console.log('Updating user display with stored data:', userData);
+            
+            if (userData) {
+                const user = JSON.parse(userData);
+                const userNameElements = document.querySelectorAll('.user-name');
+                
+                userNameElements.forEach(element => {
+                    if (element) {
+                        element.textContent = user.displayName;
+                        console.log('Updated element:', element);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error updating user display:', error);
+        }
+    }
 
-
+    /**
+     * Initialize theme settings with smooth transition support
+     */
     initializeTheme() {
-        // Load and apply saved theme
+        // Set initial theme without transition
         const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
         document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add(`theme-${savedTheme}`);
 
         // Listen for theme changes from other pages
-        window.addEventListener('storage', (e) => {
-            if (e.key === THEME_STORAGE_KEY) {
+        window.addEventListener('themeChanged', (e) => {
+            document.documentElement.classList.add('theme-transition');
+            
+            setTimeout(() => {
                 document.body.classList.remove('theme-light', 'theme-dark');
-                document.body.classList.add(`theme-${e.newValue}`);
-            }
+                document.body.classList.add(`theme-${e.detail.theme}`);
+                
+                setTimeout(() => {
+                    document.documentElement.classList.remove('theme-transition');
+                }, 50);
+            }, 1);
         });
     }
 
+    /**
+     * Initialize all event listeners
+     */
     initializeEventListeners() {
         // Modal controls
-        const addTaskBtn = document.querySelector('.add-task-btn');
-        const modalCloseBtns = document.querySelectorAll('.modal-close');
-        const cancelBtns = document.querySelectorAll('.cancel-btn');
-        const taskModal = document.getElementById('taskModal');
-        const taskForm = document.getElementById('taskForm');
-        const editTaskForm = document.getElementById('editTaskForm');
-        const modalOverlays = document.querySelectorAll('.modal-overlay');
-
+        this.setupModalControls();
+        
         // Pagination controls
-        const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
+        this.setupPaginationControls();
 
         // Add visibility change listener for counter updates
         document.addEventListener('visibilitychange', () => {
@@ -120,6 +131,27 @@ class TaskManager {
                 this.renderTasks();
             }
         });
+
+        // Setup filters
+        this.setupFilters();
+
+        // Initialize date display and render tasks
+        this.updateDateDisplay();
+        this.renderTasks();
+        this.initializeDragAndDrop();
+    }
+
+    /**
+     * Setup modal control event listeners
+     */
+    setupModalControls() {
+        const addTaskBtn = document.querySelector('.add-task-btn');
+        const modalCloseBtns = document.querySelectorAll('.modal-close');
+        const cancelBtns = document.querySelectorAll('.cancel-btn');
+        const taskModal = document.getElementById('taskModal');
+        const taskForm = document.getElementById('taskForm');
+        const editTaskForm = document.getElementById('editTaskForm');
+        const modalOverlays = document.querySelectorAll('.modal-overlay');
 
         // Add task button event
         addTaskBtn?.addEventListener('click', () => {
@@ -146,8 +178,16 @@ class TaskManager {
         // Form submissions
         taskForm?.addEventListener('submit', (e) => this.handleTaskSubmit(e));
         editTaskForm?.addEventListener('submit', (e) => this.handleEditTaskSubmit(e));
+    }
 
-        // Pagination events
+    /**
+     * Setup pagination control event listeners
+     */
+    setupPaginationControls() {
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+
         if (itemsPerPageSelect) {
             itemsPerPageSelect.addEventListener('change', (e) => {
                 this.itemsPerPage = parseInt(e.target.value);
@@ -173,8 +213,12 @@ class TaskManager {
                 }
             });
         }
+    }
 
-        // Filters
+    /**
+     * Setup filter event listeners
+     */
+    setupFilters() {
         const priorityFilter = document.querySelector('.priority-filter');
         const statusFilter = document.querySelector('.status-filter');
         const deadlineFilter = document.querySelector('.deadline-filter');
@@ -184,13 +228,11 @@ class TaskManager {
         statusFilter?.addEventListener('change', () => this.applyFilters());
         deadlineFilter?.addEventListener('change', () => this.applyFilters());
         searchInput?.addEventListener('input', () => this.applyFilters());
-
-        // Initialize date display and render tasks
-        this.updateDateDisplay();
-        this.renderTasks();
-        this.initializeDragAndDrop();
     }
-    // Initialize task counters
+
+    /**
+     * Initialize task counters
+     */
     initializeTaskCounters() {
         const savedCounters = localStorage.getItem(COUNTER_STORAGE_KEY);
         if (savedCounters) {
@@ -208,6 +250,9 @@ class TaskManager {
         }
     }
 
+    /**
+     * Update task counts and store in localStorage
+     */
     updateTaskCounts() {
         const todayCount = document.querySelector('.task-counts .count-item:first-child strong');
         const upcomingCount = document.querySelector('.task-counts .count-item:last-child strong');
@@ -241,6 +286,10 @@ class TaskManager {
         }
     }
 
+    /**
+     * Update counter display in UI
+     * @param {Object} counters - Counter values object
+     */
     updateCounterDisplay(counters) {
         const todayCount = document.querySelector('.task-counts .count-item:first-child strong');
         const upcomingCount = document.querySelector('.task-counts .count-item:last-child strong');
@@ -251,6 +300,9 @@ class TaskManager {
         }
     }
 
+    /**
+     * Show task limit warning message
+     */
     showTaskLimitWarning() {
         const warningDiv = document.createElement('div');
         warningDiv.className = 'task-limit-warning';
@@ -273,6 +325,10 @@ class TaskManager {
         setTimeout(() => warningDiv.remove(), 5000);
     }
 
+    /**
+     * Handle new task submission
+     * @param {Event} e - Form submit event
+     */
     handleTaskSubmit(e) {
         e.preventDefault();
         
@@ -297,6 +353,10 @@ class TaskManager {
         e.target.reset();
     }
 
+    /**
+     * Handle edit task submission
+     * @param {Event} e - Form submit event
+     */
     handleEditTaskSubmit(e) {
         e.preventDefault();
         
@@ -316,6 +376,12 @@ class TaskManager {
         }
     }
 
+    // ... [Previous code for task manipulation methods remains unchanged]
+
+    /**
+     * Add a new task
+     * @param {Object} task - Task object to add
+     */
     addTask(task) {
         this.tasks.push(task);
         this.saveTasks();
@@ -323,6 +389,10 @@ class TaskManager {
         this.updateTaskCounts();
     }
 
+    /**
+     * Delete a task
+     * @param {string} taskId - ID of task to delete
+     */
     deleteTask(taskId) {
         this.tasks = this.tasks.filter(task => task.id !== taskId);
         this.saveTasks();
@@ -330,6 +400,10 @@ class TaskManager {
         this.updateTaskCounts();
     }
 
+    /**
+     * Toggle task completion status
+     * @param {string} taskId - ID of task to toggle
+     */
     toggleTaskComplete(taskId) {
         const task = this.tasks.find(t => t.id === taskId);
         if (task) {
@@ -349,6 +423,11 @@ class TaskManager {
             this.updateTaskCounts();
         }
     }
+
+    /**
+     * Edit a task
+     * @param {string} taskId - ID of task to edit
+     */
     editTask(taskId) {
         const task = this.tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -363,6 +442,9 @@ class TaskManager {
         this.openModal('editTaskModal');
     }
 
+/**
+     * Render tasks to the UI
+     */
     renderTasks() {
         const taskList = document.getElementById('taskList');
         if (!taskList) return;
@@ -430,6 +512,10 @@ class TaskManager {
         this.updatePaginationControls();
     }
 
+    /**
+     * Get empty state message based on current filters
+     * @returns {string} Empty state message
+     */
     getEmptyStateMessage() {
         const priorityFilter = document.querySelector('.priority-filter').value;
         const statusFilter = document.querySelector('.status-filter').value;
@@ -443,6 +529,11 @@ class TaskManager {
         return 'Create your first task to get started!';
     }
 
+    /**
+     * Get paginated tasks
+     * @param {Array} tasks - Array of tasks to paginate
+     * @returns {Array} Paginated tasks
+     */
     getPaginatedTasks(tasks) {
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
@@ -451,6 +542,9 @@ class TaskManager {
         return tasks.slice(startIndex, endIndex);
     }
 
+    /**
+     * Update pagination controls state
+     */
     updatePaginationControls() {
         const currentPageSpan = document.getElementById('currentPage');
         const totalPagesSpan = document.getElementById('totalPages');
@@ -463,6 +557,10 @@ class TaskManager {
         if (prevPageBtn) prevPageBtn.disabled = this.currentPage <= 1;
         if (nextPageBtn) nextPageBtn.disabled = this.currentPage >= this.totalPages;
     }
+
+    /**
+     * Add event listeners to task items
+     */
     addTaskEventListeners() {
         const taskItems = document.querySelectorAll('.task-item');
         
@@ -478,6 +576,10 @@ class TaskManager {
         });
     }
 
+    /**
+     * Get filtered tasks based on current filters
+     * @returns {Array} Filtered tasks
+     */
     getFilteredTasks() {
         const priorityFilter = document.querySelector('.priority-filter').value;
         const statusFilter = document.querySelector('.status-filter').value;
@@ -497,6 +599,12 @@ class TaskManager {
         });
     }
 
+    /**
+     * Check if task matches deadline filter
+     * @param {Object} task - Task to check
+     * @param {string} filter - Deadline filter value
+     * @returns {boolean} Whether task matches filter
+     */
     checkDeadlineFilter(task, filter) {
         if (filter === 'all') return true;
         
@@ -516,11 +624,17 @@ class TaskManager {
         }
     }
 
+    /**
+     * Apply filters and reset pagination
+     */
     applyFilters() {
         this.currentPage = 1; // Reset to first page when filters change
         this.renderTasks();
     }
 
+    /**
+     * Update current date display
+     */
     updateDateDisplay() {
         const dateDisplay = document.querySelector('.current-date');
         if (dateDisplay) {
@@ -533,6 +647,11 @@ class TaskManager {
         }
     }
 
+    /**
+     * Format date for display
+     * @param {string} dateString - Date string to format
+     * @returns {string} Formatted date string
+     */
     formatDate(dateString) {
         const date = new Date(dateString);
         const today = new Date();
@@ -553,6 +672,11 @@ class TaskManager {
         }
     }
 
+    /**
+     * Escape HTML special characters
+     * @param {string} unsafe - String to escape
+     * @returns {string} Escaped string
+     */
     escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe
@@ -563,6 +687,10 @@ class TaskManager {
             .replace(/'/g, "&#039;");
     }
 
+    /**
+     * Open modal dialog
+     * @param {string} modalId - ID of modal to open
+     */
     openModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -570,6 +698,10 @@ class TaskManager {
         }
     }
 
+    /**
+     * Close modal dialog
+     * @param {string} modalId - ID of modal to close
+     */
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -579,6 +711,9 @@ class TaskManager {
         }
     }
 
+    /**
+     * Initialize drag and drop functionality
+     */
     initializeDragAndDrop() {
         const taskList = document.getElementById('taskList');
         if (!taskList) return;
@@ -603,6 +738,10 @@ class TaskManager {
         });
     }
 
+    /**
+     * Add drag event listeners to task item
+     * @param {HTMLElement} item - Task item element
+     */
     addDragListeners(item) {
         item.addEventListener('dragstart', (e) => {
             item.classList.add('dragging');
@@ -644,6 +783,12 @@ class TaskManager {
         });
     }
 
+    /**
+     * Get element after dragged position
+     * @param {HTMLElement} container - Container element
+     * @param {number} y - Mouse Y position
+     * @returns {HTMLElement|null} Element to insert after
+     */
     getDragAfterElement(container, y) {
         const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
 
@@ -659,6 +804,9 @@ class TaskManager {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
+    /**
+     * Update task order after drag and drop
+     */
     updateTaskOrder() {
         const taskElements = document.querySelectorAll('.task-item');
         const newTasksOrder = [];
@@ -675,6 +823,9 @@ class TaskManager {
         this.saveTasks();
     }
 
+    /**
+     * Save tasks to localStorage
+     */
     saveTasks() {
         try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.tasks));
@@ -684,6 +835,9 @@ class TaskManager {
         }
     }
 
+/**
+     * Load tasks from localStorage
+     */
     loadTasks() {
         try {
             const savedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -695,7 +849,7 @@ class TaskManager {
     }
 }
 
-// Initialize the application
+// Initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.taskManager = new TaskManager();
     window.taskManager.initializeUserSync(); // Explicitly call after initialization

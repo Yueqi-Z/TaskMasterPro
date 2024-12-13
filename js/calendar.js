@@ -1,22 +1,23 @@
 /**
  * calendar.js - TaskMaster Pro Calendar Implementation
- * Version: 1.4.0
+ * Version: 1.4.1
  * 
  * Change Log:
+ * 1.4.1 - Added smooth theme transition and improved synchronization
  * 1.4.0 - Added theme support and synchronization
  * 1.3.1 - Fixed calendar rendering and class handling
  * 1.3.0 - Added improved task preview handling and date navigation
- * 1.2.0 - Enhanced day preview modal and task overflow handling
  */
 
-const APP_VERSION = '1.4.0';
+// Global Constants
+const APP_VERSION = '1.4.1';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';
 const THEME_STORAGE_KEY = 'taskmaster_theme';
 const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
 
 class CalendarManager {
     constructor() {
-        // Core state
+        // Core state initialization
         this.currentDate = new Date();
         this.selectedDate = null;
         this.tasks = [];
@@ -26,7 +27,7 @@ class CalendarManager {
         this.calendarDays = document.getElementById('calendarDays');
         this.monthDisplay = document.querySelector('.current-month');
         
-        // Constants
+        // Constants initialization
         this.STORAGE_KEY = 'taskmaster_tasks_v1_3';
         this.MONTH_NAMES = [
             'January', 'February', 'March', 'April',
@@ -38,69 +39,83 @@ class CalendarManager {
             'Thursday', 'Friday', 'Saturday'
         ];
 
-        // Initialize
+        // Initialize calendar components
         this.loadTasks();
         this.initializeTheme();
         this.initializeEventListeners();
         this.renderCalendar();
-		this.initializeUserSync();
+        this.initializeUserSync();
     }
-	
-	initializeUserSync() {
-		// Initial load
-		this.updateUserDisplay();
-		
-		// Listen for storage events
-		window.addEventListener('storage', (e) => {
-			console.log('Storage event:', e.key, e.newValue);
-			if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
-				this.updateUserDisplay();
-			}
-		});
 
-		// Listen for direct events
-		window.addEventListener('usernameUpdated', () => {
-			console.log('Username updated event received');
-			this.updateUserDisplay();
-		});
-	}
+    /**
+     * Initialize user synchronization across tabs
+     */
+    initializeUserSync() {
+        // Initial load
+        this.updateUserDisplay();
+        
+        // Listen for storage events
+        window.addEventListener('storage', (e) => {
+            if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
+                this.updateUserDisplay();
+            }
+        });
 
-	updateUserDisplay() {
-		try {
-			const userData = localStorage.getItem(USER_STORAGE_KEY);
-			console.log('Updating user display with stored data:', userData);
-			
-			if (userData) {
-				const user = JSON.parse(userData);
-				const userNameElements = document.querySelectorAll('.user-name');
-				
-				userNameElements.forEach(element => {
-					if (element) {
-						element.textContent = user.displayName;
-						console.log('Updated element:', element);
-					}
-				});
-			}
-		} catch (error) {
-			console.error('Error updating user display:', error);
-		}
-	}
+        // Listen for direct events
+        window.addEventListener('usernameUpdated', () => {
+            this.updateUserDisplay();
+        });
+    }
 
+    /**
+     * Update user display across all elements
+     */
+    updateUserDisplay() {
+        try {
+            const userData = localStorage.getItem(USER_STORAGE_KEY);
+            
+            if (userData) {
+                const user = JSON.parse(userData);
+                const userNameElements = document.querySelectorAll('.user-name');
+                
+                userNameElements.forEach(element => {
+                    if (element) {
+                        element.textContent = user.displayName;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error updating user display:', error);
+        }
+    }
+
+    /**
+     * Initialize theme settings with smooth transition support
+     */
     initializeTheme() {
-        // Load and apply saved theme
+        // Set initial theme without transition
         const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
         document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add(`theme-${savedTheme}`);
 
         // Listen for theme changes from other pages
-        window.addEventListener('storage', (e) => {
-            if (e.key === THEME_STORAGE_KEY) {
+        window.addEventListener('themeChanged', (e) => {
+            document.documentElement.classList.add('theme-transition');
+            
+            setTimeout(() => {
                 document.body.classList.remove('theme-light', 'theme-dark');
-                document.body.classList.add(`theme-${e.newValue}`);
-            }
+                document.body.classList.add(`theme-${e.detail.theme}`);
+                
+                setTimeout(() => {
+                    document.documentElement.classList.remove('theme-transition');
+                }, 50);
+            }, 1);
         });
     }
 
+    /**
+     * Initialize all event listeners
+     */
     initializeEventListeners() {
         // Calendar navigation
         this.initializeNavigationListeners();
@@ -123,6 +138,9 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Initialize calendar navigation listeners
+     */
     initializeNavigationListeners() {
         const prevMonthBtn = document.getElementById('prevMonth');
         const nextMonthBtn = document.getElementById('nextMonth');
@@ -146,6 +164,10 @@ class CalendarManager {
             });
         }
     }
+
+    /**
+     * Initialize modal event listeners
+     */
     initializeModalListeners() {
         const modals = document.querySelectorAll('.modal');
         
@@ -168,14 +190,23 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Initialize task interaction listeners
+     */
     initializeTaskInteractionListeners() {
         // Task interaction listeners will be added during rendering
     }
 
+    /**
+     * Handle window resize event
+     */
     handleResize() {
         this.updateCalendarHeight();
     }
 
+    /**
+     * Update calendar height based on viewport
+     */
     updateCalendarHeight() {
         if (!this.calendarDays) return;
 
@@ -189,7 +220,9 @@ class CalendarManager {
 
         this.calendarDays.style.minHeight = `${minHeight}px`;
     }
-
+/**
+     * Load tasks from localStorage
+     */
     loadTasks() {
         try {
             const savedTasks = localStorage.getItem(this.STORAGE_KEY);
@@ -200,6 +233,11 @@ class CalendarManager {
         }
     }
 
+    /**
+     * Get tasks for a specific date
+     * @param {Date} date - Date to get tasks for
+     * @returns {Array} Array of tasks for the date
+     */
     getTasksForDate(date) {
         if (!date) return [];
 
@@ -214,6 +252,9 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Render calendar view
+     */
     renderCalendar() {
         if (!this.calendarDays) return;
 
@@ -261,6 +302,11 @@ class CalendarManager {
         this.addDayCellListeners();
     }
 
+    /**
+     * Render task previews for a day cell
+     * @param {Array} tasks - Array of tasks to render
+     * @returns {string} HTML string of task previews
+     */
     renderTaskPreviews(tasks) {
         if (tasks.length === 0) return '';
 
@@ -286,12 +332,20 @@ class CalendarManager {
 
         return html;
     }
+
+    /**
+     * Navigate calendar by month
+     * @param {number} offset - Month offset (-1 or 1)
+     */
     navigateMonth(offset) {
         this.currentDate.setMonth(this.currentDate.getMonth() + offset);
         this.renderCalendar();
         this.animateMonthChange(offset);
     }
 
+    /**
+     * Navigate to today's date
+     */
     navigateToToday() {
         const today = new Date();
         if (this.currentDate.getMonth() !== today.getMonth() ||
@@ -302,6 +356,10 @@ class CalendarManager {
         this.highlightToday();
     }
 
+    /**
+     * Animate month change transition
+     * @param {number} direction - Direction of change (-1 or 1)
+     */
     animateMonthChange(direction) {
         if (!this.monthDisplay) return;
 
@@ -320,6 +378,9 @@ class CalendarManager {
         };
     }
 
+    /**
+     * Highlight today's date in calendar
+     */
     highlightToday() {
         const todayCell = this.calendarDays?.querySelector('.calendar-day.today');
         if (!todayCell) return;
@@ -335,6 +396,9 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Update month display text
+     */
     updateMonthDisplay() {
         if (!this.monthDisplay) return;
         const month = this.MONTH_NAMES[this.currentDate.getMonth()];
@@ -342,6 +406,9 @@ class CalendarManager {
         this.monthDisplay.textContent = `${month} ${year}`;
     }
 
+    /**
+     * Add event listeners to day cells
+     */
     addDayCellListeners() {
         document.querySelectorAll('.task-preview').forEach(preview => {
             preview.addEventListener('click', (e) => {
@@ -367,6 +434,10 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Open task preview modal
+     * @param {string} taskId - ID of task to preview
+     */
     openTaskPreview(taskId) {
         const task = this.tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -384,6 +455,11 @@ class CalendarManager {
         modal.removeAttribute('hidden');
         this.animateModalOpen(modal);
     }
+
+    /**
+     * Open day preview modal
+     * @param {Date} date - Date to preview
+     */
     openDayPreview(date) {
         const tasks = this.getTasksForDate(date);
         if (tasks.length === 0) return;
@@ -408,6 +484,11 @@ class CalendarManager {
         this.animateModalOpen(modal);
     }
 
+    /**
+     * Create content for day preview modal
+     * @param {Array} tasks - Array of tasks for the day
+     * @returns {string} HTML string of task previews
+     */
     createDayPreviewContent(tasks) {
         return tasks.map(task => `
             <div class="day-task-item ${task.completed ? 'completed' : ''}" 
@@ -423,6 +504,10 @@ class CalendarManager {
         `).join('');
     }
 
+    /**
+     * Animate modal open
+     * @param {HTMLElement} modal - Modal element to animate
+     */
     animateModalOpen(modal) {
         const content = modal.querySelector('.modal-content');
         content.animate([
@@ -434,6 +519,10 @@ class CalendarManager {
         });
     }
 
+    /**
+     * Close modal dialog
+     * @param {string} modalId - ID of modal to close
+     */
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
@@ -452,12 +541,24 @@ class CalendarManager {
         };
     }
 
+    /**
+     * Check if two dates are the same day
+     * @param {Date} date1 - First date
+     * @param {Date} date2 - Second date
+     * @returns {boolean} Whether dates are the same day
+     */
     isSameDate(date1, date2) {
         return date1.getDate() === date2.getDate() &&
                date1.getMonth() === date2.getMonth() &&
                date1.getFullYear() === date2.getFullYear();
     }
 
+    /**
+     * Format date for display
+     * @param {Date|string} date - Date to format
+     * @param {boolean} includeTime - Whether to include time in format
+     * @returns {string} Formatted date string
+     */
     formatDate(date, includeTime = false) {
         const d = new Date(date);
         const options = {
@@ -479,6 +580,11 @@ class CalendarManager {
         }
     }
 
+    /**
+     * Format time for display
+     * @param {Date|string} date - Date to format time from
+     * @returns {string} Formatted time string
+     */
     formatTime(date) {
         const d = new Date(date);
         try {
@@ -492,6 +598,11 @@ class CalendarManager {
         }
     }
 
+    /**
+     * Escape HTML special characters
+     * @param {string} unsafe - String to escape
+     * @returns {string} Escaped string
+     */
     escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe
@@ -509,3 +620,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.calendarManager.initializeUserSync(); // Explicitly call after initialization
     console.log(`Calendar view v${APP_VERSION} initialized`);
 });
+		
