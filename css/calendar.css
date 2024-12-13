@@ -102,13 +102,14 @@
 /* Calendar Day Cell Base Styles */
 .calendar-day {
   background-color: var(--background-dark);
-  min-height: 120px;
+  height: clamp(120px, 15vh, 180px);
   padding: var(--spacing-sm);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   position: relative;
   transition: background-color 0.2s ease;
+  overflow: hidden;
 }
 
 .theme-dark .calendar-day {
@@ -175,10 +176,16 @@
 /* Task Container Within Day Cell */
 .task-container {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.task-container::-webkit-scrollbar {
+  display: none;
 }
 
 /* Task Preview Cards */
@@ -191,12 +198,13 @@
   margin-bottom: 2px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  min-height: 24px;
 }
 
 .theme-dark .task-preview {
@@ -286,12 +294,12 @@
 /* Task Preview Animation */
 @keyframes taskPreviewIn {
   from {
-      opacity: 0;
-      transform: translateY(-4px);
+    opacity: 0;
+    transform: translateY(-4px);
   }
   to {
-      opacity: 1;
-      transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -484,19 +492,19 @@
 /* Calendar Day Hover Animation */
 @keyframes dayHighlight {
   0% {
-      background-color: var(--background-dark);
+    background-color: var(--background-dark);
   }
   100% {
-      background-color: rgba(37, 99, 235, 0.05);
+    background-color: rgba(37, 99, 235, 0.05);
   }
 }
 
 .theme-dark @keyframes dayHighlight {
   0% {
-      background-color: var(--background-dark);
+    background-color: var(--background-dark);
   }
   100% {
-      background-color: rgba(59, 130, 246, 0.1);
+    background-color: rgba(59, 130, 246, 0.1);
   }
 }
 
@@ -507,13 +515,13 @@
 /* Task Count Badge Animation */
 @keyframes badgePulse {
   0% {
-      transform: scale(1);
+    transform: scale(1);
   }
   50% {
-      transform: scale(1.1);
+    transform: scale(1.1);
   }
   100% {
-      transform: scale(1);
+    transform: scale(1);
   }
 }
 
@@ -524,103 +532,104 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .calendar-controls {
-      padding: var(--spacing-sm);
+    padding: var(--spacing-sm);
   }
 
   .current-month {
     font-size: 1.1rem;
     min-width: 160px;
-}
+  }
 
-.calendar-day {
-    min-height: 100px;
-}
+  .calendar-day {
+    height: clamp(100px, 12vh, 150px);
+  }
 }
 
 /* Mobile Breakpoint */
 @media (max-width: 768px) {
-/* Calendar Controls */
-.calendar-controls {
+  /* Calendar Controls */
+  .calendar-controls {
     flex-direction: column;
     gap: var(--spacing-md);
-}
+  }
 
-/* Calendar Header */
-.calendar-header span {
+  /* Calendar Header */
+  .calendar-header span {
     font-size: 0.75rem;
     padding: var(--spacing-sm);
-}
+  }
 
-/* Calendar Days */
-.calendar-day {
-    min-height: 80px;
+  /* Calendar Days */
+  .calendar-day {
+    height: clamp(80px, 10vh, 120px);
     padding: var(--spacing-xs);
-}
+  }
 
-.day-number {
+  .day-number {
     font-size: 0.813rem;
-}
+  }
 
-/* Task Preview */
-.task-preview {
+  /* Task Preview */
+  .task-preview {
     font-size: 0.75rem;
     padding: 4px var(--spacing-xs);
-}
+    min-height: 20px;
+  }
 
-.more-tasks {
+  .more-tasks {
     font-size: 0.688rem;
-}
+  }
 
-/* Today Label */
-.today .day-number::after {
+  /* Today Label */
+  .today .day-number::after {
     display: none;
-}
+  }
 
-/* Modal Adjustments */
-.modal-content {
+  /* Modal Adjustments */
+  .modal-content {
     width: 95%;
     margin: var(--spacing-sm);
-}
+  }
 
-.day-preview-content {
+  .day-preview-content {
     padding: 0 var(--spacing-md);
-}
+  }
 }
 
 /* Small Mobile Breakpoint */
 @media (max-width: 480px) {
-.calendar-header span {
+  .calendar-header span {
     font-size: 0.688rem;
     padding: var(--spacing-xs);
-}
+  }
 
-.calendar-day {
-    min-height: 60px;
-}
+  .calendar-day {
+    height: clamp(60px, 8vh, 100px);
+  }
 
-.task-preview {
+  .task-preview {
     font-size: 0.688rem;
-}
+  }
 
-.more-tasks {
+  .more-tasks {
     display: none;
-}
+  }
 }
 
 /* Print Styles */
 @media print {
-.calendar-controls,
-.modal {
+  .calendar-controls,
+  .modal {
     display: none !important;
-}
+  }
 
-.calendar-grid {
+  .calendar-grid {
     border: none;
     box-shadow: none;
-}
+  }
 
-.calendar-day {
+  .calendar-day {
     border: 1px solid var(--border-color) !important;
     min-height: 150px;
-}
+  }
 }

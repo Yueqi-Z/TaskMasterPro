@@ -9,6 +9,8 @@
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-dark .profile-section,
@@ -61,6 +63,8 @@ h2 {
     border-radius: var(--border-radius-md);
     background-color: var(--background-light);
     border: 1px solid var(--border-color);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-dark .editable-field {
@@ -103,7 +107,8 @@ h2 {
     padding: var(--spacing-lg);
     border-radius: var(--border-radius-md);
     text-align: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease,
+                background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-dark .stat-card {
@@ -177,6 +182,7 @@ h2 {
 
 .theme-toggle-wrapper {
     width: 200px;
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-toggle {
@@ -201,6 +207,7 @@ h2 {
     padding: var(--spacing-md);
     border-radius: var(--border-radius-md);
     margin-bottom: var(--spacing-lg);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-dark .warning-text {
@@ -214,6 +221,7 @@ h2 {
     padding: var(--spacing-md);
     border-radius: var(--border-radius-md);
     margin-bottom: var(--spacing-lg);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .theme-dark .success-message {
@@ -239,7 +247,8 @@ h2 {
     background-color: transparent;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    transition: all 0.2s ease;
+    transition: all 0.2s ease,
+                background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .logout-btn:hover {
