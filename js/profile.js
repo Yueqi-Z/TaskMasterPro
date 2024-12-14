@@ -1,105 +1,112 @@
 /**
  * profile.js - TaskMaster Pro Profile Implementation
- * Version: 1.2.1
+ * Version: 1.2.2
  * 
  * Change Log:
+ * 1.2.2 - Fixed user data synchronization across pages and enhanced data validation
  * 1.2.1 - Added smooth theme transition handling
  * 1.2.0 - Added global theme management
- * 1.1.0 - Modified email update to preserve task data
- *       - Updated statistics to show overdue tasks
- *       - Separated data reset functionality
+ * 1.1.0 - Modified email update and statistics features
  */
 
 // Global Constants
-const APP_VERSION = '1.2.1';
-const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3'; // Shared with other components
-const USER_STORAGE_KEY = 'taskmaster_user_v1_0';
-const THEME_STORAGE_KEY = 'taskmaster_theme';
+const APP_VERSION = '1.2.2';
+const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';     // Shared with task management
+const USER_STORAGE_KEY = 'taskmaster_user_v1_0';       // User data storage key
+const THEME_STORAGE_KEY = 'taskmaster_theme';          // Theme preference storage
+const DEFAULT_USER = {
+    displayName: 'John Doe',
+    email: 'john.doe@example.com'
+};
 
 class ProfileManager {
+    /**
+     * Initialize ProfileManager with default settings and event listeners
+     */
     constructor() {
-        // Core properties initialization
+        // Initialize core user properties with defaults
         this.user = {
-            displayName: 'John Doe',
-            email: 'john.doe@example.com',
+            ...DEFAULT_USER,
             theme: localStorage.getItem(THEME_STORAGE_KEY) || 'light'
         };
 
-        // Add storage event listener for cross-tab synchronization
+        // Set up cross-tab synchronization
         window.addEventListener('storage', (e) => {
             if (e.key === USER_STORAGE_KEY) {
                 this.loadUserData();
                 this.updateUserDisplay();
+                this.updateProfileFields();
             }
         });
 
-        // Initialize the application
+        // Initialize all components
         this.loadUserData();
         this.initializeEventListeners();
         this.updateStatistics();
         this.initializeTheme();
         this.updateUserDisplay();
-		this.initializeDevModal();
+        this.updateProfileFields();
+        this.initializeDevModal();
     }
-	/**
-	 * Initialize developer introduction modal
-	 */
-	initializeDevModal() {
-		const logo = document.querySelector('.logo');
-		const devModal = document.getElementById('devModal');
-		
-		if (logo && devModal) {
-			logo.addEventListener('click', () => {
-				devModal.removeAttribute('hidden');
-			});
-			
-			const closeBtn = devModal.querySelector('.modal-close');
-			const overlay = devModal.querySelector('.modal-overlay');
-			
-			const closeModal = () => {
-				devModal.setAttribute('hidden', '');
-			};
-			
-			closeBtn?.addEventListener('click', closeModal);
-			overlay?.addEventListener('click', closeModal);
-			
-			document.addEventListener('keydown', (e) => {
-				if (e.key === 'Escape' && !devModal.hasAttribute('hidden')) {
-					closeModal();
-				}
-			});
-		}
-	}
 
     /**
-     * Initialize user synchronization across tabs
+     * Initialize developer introduction modal functionality
+     */
+    initializeDevModal() {
+        const logo = document.querySelector('.logo');
+        const devModal = document.getElementById('devModal');
+        
+        if (logo && devModal) {
+            logo.addEventListener('click', () => {
+                devModal.removeAttribute('hidden');
+            });
+            
+            const closeBtn = devModal.querySelector('.modal-close');
+            const overlay = devModal.querySelector('.modal-overlay');
+            
+            const closeModal = () => {
+                devModal.setAttribute('hidden', '');
+            };
+            
+            closeBtn?.addEventListener('click', closeModal);
+            overlay?.addEventListener('click', closeModal);
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !devModal.hasAttribute('hidden')) {
+                    closeModal();
+                }
+            });
+        }
+    }
+
+    /**
+     * Initialize user synchronization across browser tabs
      */
     initializeUserSync() {
-        // Initial load
         this.updateUserDisplay();
         
-        // Listen for storage events
+        // Listen for storage events from other tabs
         window.addEventListener('storage', (e) => {
             if (e.key === USER_STORAGE_KEY || e.key === 'lastUserUpdate') {
                 this.updateUserDisplay();
             }
         });
 
-        // Listen for direct events
+        // Listen for direct username update events
         window.addEventListener('usernameUpdated', () => {
             this.updateUserDisplay();
         });
     }
 
     /**
-     * Update user display across all elements
+     * Update user display elements across the interface
      */
     updateUserDisplay() {
         try {
             const userData = localStorage.getItem(USER_STORAGE_KEY);
             if (userData) {
                 const user = JSON.parse(userData);
-                const userNameElements = document.querySelectorAll('.user-name');
+                const userNameElements = document.querySelectorAll('[data-user-display="true"]');
                 userNameElements.forEach(element => {
                     if (element) {
                         element.textContent = user.displayName;
@@ -112,7 +119,22 @@ class ProfileManager {
     }
 
     /**
-     * Initialize all event listeners
+     * Update profile fields with current user data
+     */
+    updateProfileFields() {
+        const nameField = document.querySelector('.profile-name');
+        const emailField = document.querySelector('.profile-email');
+        
+        if (nameField) {
+            nameField.textContent = this.user.displayName;
+        }
+        if (emailField) {
+            emailField.textContent = this.user.email;
+        }
+    }
+
+    /**
+     * Initialize all event listeners for profile functionality
      */
     initializeEventListeners() {
         // Settings section toggle
@@ -129,12 +151,16 @@ class ProfileManager {
         editBtns[0]?.addEventListener('click', () => this.startEditing('name'));
         editBtns[1]?.addEventListener('click', () => this.openModal('emailModal'));
 
-        // Modal handlers
+        // Initialize modal handlers
         this.initializeModalHandlers();
 
         // Reset data button
         const resetDataBtn = document.querySelector('.reset-data-btn');
         resetDataBtn?.addEventListener('click', () => this.openModal('resetModal'));
+
+        // Logout button
+        const logoutBtn = document.querySelector('.logout-btn');
+        logoutBtn?.addEventListener('click', () => this.handleLogout());
     }
 
     /**
@@ -152,19 +178,15 @@ class ProfileManager {
 
     /**
      * Handle theme change with smooth transition
-     * @param {Event} e - Theme change event
      */
     handleThemeChange(e) {
         const newTheme = e.target.value;
         
-        // Add transition class before theme change
         document.documentElement.classList.add('theme-transition');
         
-        // Small delay to ensure transition class is applied
         setTimeout(() => {
             this.applyTheme(newTheme);
             
-            // Remove transition class after theme is applied
             setTimeout(() => {
                 document.documentElement.classList.remove('theme-transition');
             }, 50);
@@ -173,7 +195,6 @@ class ProfileManager {
 
     /**
      * Apply theme to the application
-     * @param {string} theme - Theme name ('light' or 'dark')
      */
     applyTheme(theme) {
         document.body.classList.remove('theme-light', 'theme-dark');
@@ -181,7 +202,7 @@ class ProfileManager {
         this.user.theme = theme;
         localStorage.setItem(THEME_STORAGE_KEY, theme);
         
-        // Dispatch a custom event for theme change
+        // Notify other tabs of theme change
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
     }
 
@@ -224,7 +245,6 @@ class ProfileManager {
 
     /**
      * Start editing a profile field
-     * @param {string} field - Field name to edit
      */
     startEditing(field) {
         const fieldElement = field === 'name' ? 
@@ -250,8 +270,6 @@ class ProfileManager {
 
     /**
      * Finish editing a profile field
-     * @param {HTMLElement} input - Input element
-     * @param {string} field - Field being edited
      */
     finishEditing(input, field) {
         const newValue = input.value.trim();
@@ -265,13 +283,9 @@ class ProfileManager {
 
         if (field === 'name') {
             this.user.displayName = newValue;
-            this.updateUserDisplay();
             this.saveUserData();
             
-            // Dispatch a custom event for cross-tab communication
-            const event = new Event('usernameUpdated');
-            window.dispatchEvent(event);
-            
+            window.dispatchEvent(new Event('usernameUpdated'));
             this.showMessage('Name updated successfully', 'success');
         }
     }
@@ -283,12 +297,20 @@ class ProfileManager {
         const newEmail = document.getElementById('newEmail')?.value.trim();
         if (!newEmail) return;
 
+        // Basic email validation
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(newEmail)) {
+            this.showMessage('Please enter a valid email address', 'error');
+            return;
+        }
+
         this.user.email = newEmail;
         this.saveUserData();
         
         this.showMessage('Email updated successfully', 'success');
         this.closeModal('emailModal');
         this.updateUserDisplay();
+        this.updateProfileFields();
     }
 
     /**
@@ -298,6 +320,61 @@ class ProfileManager {
         localStorage.clear();
         this.showMessage('All data has been reset. Refreshing page...', 'success');
         setTimeout(() => window.location.reload(), 1500);
+    }
+
+    /**
+     * Handle user logout
+     */
+    handleLogout() {
+        // Clear user-specific data
+        localStorage.removeItem(USER_STORAGE_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        
+        // Redirect to login page (to be implemented)
+        window.location.href = 'index.html';
+    }
+
+    /**
+     * Load user data from localStorage
+     */
+    loadUserData() {
+        try {
+            const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+            if (savedUser) {
+                const parsedUser = JSON.parse(savedUser);
+                // Validate required fields
+                if (parsedUser.displayName && parsedUser.email) {
+                    this.user = { ...this.user, ...parsedUser };
+                    this.updateUserDisplay();
+                    this.updateProfileFields();
+                } else {
+                    console.warn('Incomplete user data found in storage');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    }
+
+    /**
+     * Save user data to localStorage
+     */
+    saveUserData() {
+        try {
+            if (!this.user.displayName || !this.user.email) {
+                throw new Error('Invalid user data');
+            }
+            
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user));
+            localStorage.setItem('lastUserUpdate', new Date().toISOString());
+            localStorage.removeItem('lastUserUpdate');
+            
+            this.updateUserDisplay();
+            this.updateProfileFields();
+        } catch (error) {
+            console.error('Error saving user data:', error);
+            this.showMessage('Error saving changes', 'error');
+        }
     }
 
     /**
@@ -315,9 +392,20 @@ class ProfileManager {
     }
 
     /**
+     * Load tasks from localStorage
+     */
+    loadTasks() {
+        try {
+            const savedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
+            return savedTasks ? JSON.parse(savedTasks) : [];
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+            return [];
+        }
+    }
+
+    /**
      * Calculate task statistics
-     * @param {Array} tasks - Array of tasks
-     * @returns {Object} Statistics object
      */
     calculateTaskStatistics(tasks) {
         const today = new Date();
@@ -338,7 +426,6 @@ class ProfileManager {
 
     /**
      * Render statistics to the UI
-     * @param {Object} stats - Statistics object
      */
     renderStatistics(stats) {
         const statElements = document.querySelectorAll('.stat-number');
@@ -352,55 +439,7 @@ class ProfileManager {
     }
 
     /**
-     * Load tasks from localStorage
-     * @returns {Array} Array of tasks
-     */
-    loadTasks() {
-        try {
-            const savedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
-            return savedTasks ? JSON.parse(savedTasks) : [];
-        } catch (error) {
-            console.error('Error loading tasks:', error);
-            return [];
-        }
-    }
-
-    /**
-     * Load user data from localStorage
-     */
-    loadUserData() {
-        try {
-            const savedUser = localStorage.getItem(USER_STORAGE_KEY);
-            if (savedUser) {
-                this.user = { ...this.user, ...JSON.parse(savedUser) };
-                this.updateUserDisplay();
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
-        }
-    }
-
-    /**
-     * Save user data to localStorage
-     */
-    saveUserData() {
-        try {
-            // Save to localStorage
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user));
-            
-            // Force a storage event for cross-tab communication
-            localStorage.setItem('lastUserUpdate', new Date().toISOString());
-            localStorage.removeItem('lastUserUpdate'); // Cleanup
-        } catch (error) {
-            console.error('Error saving user data:', error);
-            this.showMessage('Error saving changes', 'error');
-        }
-    }
-
-    /**
      * Show message to user
-     * @param {string} message - Message to display
-     * @param {string} type - Message type ('success' or 'error')
      */
     showMessage(message, type = 'success') {
         const messageDiv = document.createElement('div');
@@ -415,7 +454,6 @@ class ProfileManager {
 
     /**
      * Open modal dialog
-     * @param {string} modalId - ID of modal to open
      */
     openModal(modalId) {
         const modal = document.getElementById(modalId);
@@ -426,7 +464,6 @@ class ProfileManager {
 
     /**
      * Close modal dialog
-     * @param {string} modalId - ID of modal to close
      */
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
