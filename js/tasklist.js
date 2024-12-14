@@ -34,7 +34,38 @@ class TaskManager {
         this.initializeEventListeners();
         this.initializeTaskCounters();
         this.initializeUserSync();
+		this.initializeDevModal();
     }
+	
+	/**
+	 * Initialize developer introduction modal
+	 */
+	initializeDevModal() {
+		const logo = document.querySelector('.logo');
+		const devModal = document.getElementById('devModal');
+		
+		if (logo && devModal) {
+			logo.addEventListener('click', () => {
+				devModal.removeAttribute('hidden');
+			});
+			
+			const closeBtn = devModal.querySelector('.modal-close');
+			const overlay = devModal.querySelector('.modal-overlay');
+			
+			const closeModal = () => {
+				devModal.setAttribute('hidden', '');
+			};
+			
+			closeBtn?.addEventListener('click', closeModal);
+			overlay?.addEventListener('click', closeModal);
+			
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape' && !devModal.hasAttribute('hidden')) {
+					closeModal();
+				}
+			});
+		}
+	}
 
     /**
      * Initialize user synchronization across tabs
