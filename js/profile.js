@@ -163,35 +163,62 @@ class ProfileManager {
         logoutBtn?.addEventListener('click', () => this.handleLogout());
     }
 
-    /**
-     * Initialize theme settings and apply saved theme
-     */
-    initializeTheme() {
-        const savedTheme = this.user.theme;
-        this.applyTheme(savedTheme);
-        
-        const themeToggle = document.querySelector('.theme-toggle');
-        if (themeToggle) {
-            themeToggle.value = savedTheme;
-        }
-    }
+	/**
+	 * Initialize theme settings 
+	 */
+	initializeTheme() {
+		const savedTheme = this.user.theme;
+		
+		// Apply initial theme without transition
+		document.body.classList.add('theme-transitioning');
+		document.body.classList.remove('theme-light', 'theme-dark');
+		document.body.classList.add(`theme-${savedTheme}`);
+		
+		// Remove transitioning class after a brief delay
+		requestAnimationFrame(() => {
+			document.body.classList.remove('theme-transitioning');
+		});
+		
+		const themeToggle = document.querySelector('.theme-toggle');
+		if (themeToggle) {
+			themeToggle.value = savedTheme;
+		}
+		
+		// Listen for theme changes from other pages
+		window.addEventListener('themeChanged', (e) => {
+			this.handleThemeChange({ target: { value: e.detail.theme } });
+		});
+	}
 
-    /**
-     * Handle theme change with smooth transition
-     */
-    handleThemeChange(e) {
-        const newTheme = e.target.value;
-        
-        document.documentElement.classList.add('theme-transition');
-        
-        setTimeout(() => {
-            this.applyTheme(newTheme);
-            
-            setTimeout(() => {
-                document.documentElement.classList.remove('theme-transition');
-            }, 50);
-        }, 1);
-    }
+	/**
+	 * Handle theme change with improved transition
+	 */
+	handleThemeChange(e) {
+		const newTheme = e.target.value;
+		
+		// Add transitioning class to prevent FOUC
+		document.body.classList.add('theme-transitioning');
+		
+		// Short delay to ensure transitioning class is applied
+		requestAnimationFrame(() => {
+			// Apply new theme
+			document.body.classList.remove('theme-light', 'theme-dark');
+			document.body.classList.add(`theme-${newTheme}`);
+			
+			// Store the theme preference
+			localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+			
+			// Notify other tabs of theme change
+			window.dispatchEvent(new CustomEvent('themeChanged', { 
+				detail: { theme: newTheme }
+			}));
+			
+			// Remove transitioning class after transition completes
+			setTimeout(() => {
+				document.body.classList.remove('theme-transitioning');
+			}, 200); // Match this with your CSS transition duration
+		});
+	}
 
     /**
      * Apply theme to the application

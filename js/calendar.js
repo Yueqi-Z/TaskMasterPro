@@ -118,29 +118,40 @@ class CalendarManager {
         }
     }
 
-    /**
-     * Initialize theme settings with smooth transition support
-     */
-    initializeTheme() {
-        // Set initial theme without transition
-        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
-        document.body.classList.remove('theme-light', 'theme-dark');
-        document.body.classList.add(`theme-${savedTheme}`);
+	/**
+	 * Initialize theme settings with smooth transition support
+	 */
+	initializeTheme() {
+		// Set initial theme without transition
+		const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+		
+		// Apply initial theme without transition
+		document.body.classList.add('theme-transitioning');
+		document.body.classList.remove('theme-light', 'theme-dark');
+		document.body.classList.add(`theme-${savedTheme}`);
+		
+		// Remove transitioning class after a brief delay
+		requestAnimationFrame(() => {
+			document.body.classList.remove('theme-transitioning');
+		});
 
-        // Listen for theme changes from other pages
-        window.addEventListener('themeChanged', (e) => {
-            document.documentElement.classList.add('theme-transition');
-            
-            setTimeout(() => {
-                document.body.classList.remove('theme-light', 'theme-dark');
-                document.body.classList.add(`theme-${e.detail.theme}`);
-                
-                setTimeout(() => {
-                    document.documentElement.classList.remove('theme-transition');
-                }, 50);
-            }, 1);
-        });
-    }
+		// Listen for theme changes from other pages
+		window.addEventListener('themeChanged', (e) => {
+			// Add transitioning class
+			document.body.classList.add('theme-transitioning');
+			
+			requestAnimationFrame(() => {
+				// Apply new theme
+				document.body.classList.remove('theme-light', 'theme-dark');
+				document.body.classList.add(`theme-${e.detail.theme}`);
+				
+				// Remove transitioning class after transition completes
+				setTimeout(() => {
+					document.body.classList.remove('theme-transitioning');
+				}, 200); // Match this with your CSS transition duration
+			});
+		});
+	}
 
     /**
      * Initialize all event listeners

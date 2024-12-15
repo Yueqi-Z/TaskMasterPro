@@ -1,26 +1,14 @@
-/* global.css - v1.2.0 
+/* global.css - v1.2.1 
  * Main stylesheet for TaskMaster Pro
- * Last updated: December 13, 2024
+ * Last updated: December 14, 2024
  */
 
-/* === Theme Transition Prevention === */
-html {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.15s ease;
-}
-
-html.theme-transition {
-  visibility: hidden;
-  opacity: 0;
-}
-
-/* === Root Variables === */
+/* === Theme Transition Settings === */
 :root {
   /* Theme transition timing */
-  --theme-transition-duration: 0.15s;
-  --theme-transition-timing: ease;
-
+  --theme-transition-duration: 200ms;
+  --theme-transition-timing: ease-out;
+  
   /* Light Theme Colors */
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
@@ -54,6 +42,41 @@ html.theme-transition {
   --border-radius-lg: 0.75rem;
 }
 
+/* Prevent FOUC during theme changes */
+.theme-transitioning * {
+  transition: none !important;
+}
+
+/* Optimize paint performance */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Apply transitions only to specific properties that need them */
+.task-item,
+.calendar-day,
+.profile-section,
+.stats-section,
+.settings-section,
+.modal-content {
+  transition: 
+      background-color var(--theme-transition-duration) var(--theme-transition-timing),
+      border-color var(--theme-transition-duration) var(--theme-transition-timing),
+      color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Elements that should not transition */
+.modal,
+.modal-overlay,
+.task-preview,
+.btn {
+  transition: none;
+}
+
 /* === Dark Theme Variables === */
 .theme-dark {
   --primary-color: #3b82f6;
@@ -71,29 +94,6 @@ html.theme-transition {
   --nav-active-bg: rgba(255, 255, 255, 0.15);
 }
 
-/* === Base Styles === */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Transition handling for theme changes */
-*, *::before, *::after {
-  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
-              border-color var(--theme-transition-duration) var(--theme-transition-timing),
-              color var(--theme-transition-duration) var(--theme-transition-timing),
-              box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
-}
-
-/* Elements that should not transition */
-.modal,
-.modal-overlay,
-.task-preview,
-.btn {
-  transition: none;
-}
-
 /* Body base styles */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -101,8 +101,9 @@ body {
   color: var(--text-primary);
   background-color: var(--background-light);
   opacity: 1;
-  transition: color var(--theme-transition-duration) var(--theme-transition-timing),
-              background-color var(--theme-transition-duration) var(--theme-transition-timing);
+  transition: 
+      color var(--theme-transition-duration) var(--theme-transition-timing),
+      background-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 /* === Header and Navigation === */
@@ -115,7 +116,8 @@ body {
   left: 0;
   right: 0;
   z-index: 1000;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+              border-color var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .header-content {
@@ -147,7 +149,7 @@ body {
   font-weight: 500;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
-  transition: all 0.2s ease;
+  transition: all var(--theme-transition-duration) var(--theme-transition-timing);
 }
 
 .main-nav a:hover {
@@ -172,417 +174,418 @@ body {
   color: var(--header-text);
 }
 
+
 /* === Button Styles === */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  gap: var(--spacing-xs);
-  border: none;
-  cursor: pointer;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: var(--spacing-sm) var(--spacing-md);
+border-radius: var(--border-radius-md);
+font-weight: 500;
+font-size: 0.875rem;
+transition: all 0.2s ease;
+gap: var(--spacing-xs);
+border: none;
+cursor: pointer;
 }
 
 /* Icon-only buttons */
 .btn-icon {
-  width: 32px;
-  height: 32px;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-sm);
+width: 32px;
+height: 32px;
+padding: var(--spacing-xs);
+border-radius: var(--border-radius-sm);
 }
 
 /* Button variants */
 .btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-  padding: var(--spacing-sm) var(--spacing-xl);
+background-color: var(--primary-color);
+color: white;
+padding: var(--spacing-sm) var(--spacing-xl);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+background-color: var(--primary-dark);
 }
 
 .btn-secondary {
-  background-color: transparent;
-  color: var(--text-secondary);
-  padding: var(--spacing-sm) var(--spacing-xl);
-  border: 1px solid var(--border-color);
+background-color: transparent;
+color: var(--text-secondary);
+padding: var(--spacing-sm) var(--spacing-xl);
+border: 1px solid var(--border-color);
 }
 
 .theme-dark .btn-secondary {
-  background-color: var(--background-light);
-  color: var(--text-primary);
+background-color: var(--background-light);
+color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background-color: var(--background-light);
-  color: var(--text-primary);
+background-color: var(--background-light);
+color: var(--text-primary);
 }
 
 .btn-text {
-  background-color: transparent;
-  color: var(--header-text);
-  transition: all 0.2s ease;
+background-color: transparent;
+color: var(--header-text);
+transition: all 0.2s ease;
 }
 
 .btn-text:hover {
-  background-color: var(--nav-hover-bg);
+background-color: var(--nav-hover-bg);
 }
 
 .btn-danger-text {
-  background-color: transparent;
-  color: var(--danger-color);
+background-color: transparent;
+color: var(--danger-color);
 }
 
 .btn-danger-text:hover {
-  background-color: rgba(239, 68, 68, 0.1);
+background-color: rgba(239, 68, 68, 0.1);
 }
 
 .btn-edit {
-  background-color: transparent;
-  color: var(--primary-color);
+background-color: transparent;
+color: var(--primary-color);
 }
 
 .btn-edit:hover {
-  background-color: rgba(37, 99, 235, 0.1);
+background-color: rgba(37, 99, 235, 0.1);
 }
 
 /* Button states */
 .btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+opacity: 0.5;
+cursor: not-allowed;
 }
 
 .btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+outline: none;
+box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* === Form Elements === */
 .form-group {
-  margin-bottom: var(--spacing-md);
+margin-bottom: var(--spacing-md);
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: var(--spacing-sm);
-  font-weight: 500;
-  color: var(--text-primary);
+display: block;
+margin-bottom: var(--spacing-sm);
+font-weight: 500;
+color: var(--text-primary);
 }
 
 input, select, textarea {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  background-color: var(--background-dark);
-  color: var(--text-primary);
+width: 100%;
+padding: var(--spacing-sm) var(--spacing-md);
+border: 1px solid var(--border-color);
+border-radius: var(--border-radius-md);
+font-size: 1rem;
+transition: all 0.2s ease;
+background-color: var(--background-dark);
+color: var(--text-primary);
 }
 
 .theme-dark input,
 .theme-dark select,
 .theme-dark textarea {
-  background-color: var(--background-light);
-  border-color: var(--border-color);
+background-color: var(--background-light);
+border-color: var(--border-color);
 }
 
 input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+outline: none;
+border-color: var(--primary-color);
+box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* === Modal Base Styles === */
 .modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  padding: var(--spacing-md);
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 1100;
+padding: var(--spacing-md);
 }
 
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(4px);
 }
 
 .theme-dark .modal-overlay {
-  background-color: rgba(0, 0, 0, 0.7);
+background-color: rgba(0, 0, 0, 0.7);
 }
 
 .modal-content {
-  position: relative;
-  background-color: var(--background-dark);
-  padding: 0;
-  border-radius: var(--border-radius-lg);
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-              0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  z-index: 1101;
+position: relative;
+background-color: var(--background-dark);
+padding: 0;
+border-radius: var(--border-radius-lg);
+max-width: 500px;
+width: 100%;
+max-height: 90vh;
+overflow-y: auto;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+z-index: 1101;
 }
 
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-bottom: 1px solid var(--border-color);
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: var(--spacing-lg) var(--spacing-xl);
+border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+margin: 0;
+font-size: 1.25rem;
+font-weight: 600;
 }
 
 .modal-body {
-  padding: var(--spacing-xl);
+padding: var(--spacing-xl);
 }
 
 .modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  padding: var(--spacing-xs);
-  cursor: pointer;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+background: none;
+border: none;
+font-size: 1.5rem;
+padding: var(--spacing-xs);
+cursor: pointer;
+color: var(--text-secondary);
+display: flex;
+align-items: center;
+justify-content: center;
+width: 32px;
+height: 32px;
+border-radius: 50%;
+transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background-color: var(--background-light);
-  color: var(--text-primary);
+background-color: var(--background-light);
+color: var(--text-primary);
 }
 
 .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-top: 1px solid var(--border-color);
-  background-color: var(--background-light);
+display: flex;
+justify-content: flex-end;
+gap: var(--spacing-md);
+padding: var(--spacing-lg) var(--spacing-xl);
+border-top: 1px solid var(--border-color);
+background-color: var(--background-light);
 }
 
 /* === Developer Modal Specific Styles === */
 .dev-modal-content {
-  max-width: 600px;
-  text-align: center;
+max-width: 600px;
+text-align: center;
 }
 
 .dev-intro {
-  padding: var(--spacing-lg);
-  line-height: 1.6;
-  color: var(--text-primary);
+padding: var(--spacing-lg);
+line-height: 1.6;
+color: var(--text-primary);
 }
 
 .dev-links {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
+display: flex;
+justify-content: center;
+gap: var(--spacing-md);
+margin-top: var(--spacing-lg);
+padding-bottom: var(--spacing-lg);
 }
 
 .dev-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--primary-color);
-  text-decoration: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  transition: background-color 0.2s ease;
+display: inline-flex;
+align-items: center;
+gap: var(--spacing-xs);
+color: var(--primary-color);
+text-decoration: none;
+padding: var(--spacing-sm) var(--spacing-md);
+border-radius: var(--border-radius-md);
+transition: background-color 0.2s ease;
 }
 
 .dev-link:hover {
-  background-color: rgba(37, 99, 235, 0.1);
+background-color: rgba(37, 99, 235, 0.1);
 }
 
 .theme-dark .dev-link:hover {
-  background-color: rgba(59, 130, 246, 0.2);
+background-color: rgba(59, 130, 246, 0.2);
 }
 
 .dev-link svg {
-  width: 20px;
-  height: 20px;
+width: 20px;
+height: 20px;
 }
 
 /* === Modal Animation === */
 @keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+to {
+  opacity: 1;
+  transform: translateY(0);
+}
 }
 
 .modal[hidden] {
-  display: none;
+display: none;
 }
 
 .modal:not([hidden]) .modal-content {
-  animation: modalFadeIn 0.3s ease-out;
+animation: modalFadeIn 0.3s ease-out;
 }
 
 /* === Main Content === */
 .main-content {
-  max-width: 1280px;
-  margin: 80px auto 0;
-  padding: var(--spacing-xl);
+max-width: 1280px;
+margin: 80px auto 0;
+padding: var(--spacing-xl);
 }
 
 /* === Responsive Design === */
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-sm);
-  }
+.header-content {
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+}
 
-  .main-nav ul {
-    gap: var(--spacing-sm);
-  }
+.main-nav ul {
+  gap: var(--spacing-sm);
+}
 
-  .main-nav a {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
+.main-nav a {
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
 
-  .main-content {
-    padding: var(--spacing-md);
-  }
+.main-content {
+  padding: var(--spacing-md);
+}
 
-  .modal-content {
-    margin: var(--spacing-sm);
-  }
+.modal-content {
+  margin: var(--spacing-sm);
+}
 
-  .dev-links {
-    flex-direction: column;
-    align-items: center;
-  }
+.dev-links {
+  flex-direction: column;
+  align-items: center;
+}
 
-  .form-actions {
-    flex-direction: column;
-  }
+.form-actions {
+  flex-direction: column;
+}
 
-  .form-actions .btn {
-    width: 100%;
-  }
+.form-actions .btn {
+  width: 100%;
+}
 
-  .modal-body {
-    padding: var(--spacing-md);
-  }
+.modal-body {
+  padding: var(--spacing-md);
+}
 }
 
 @media (max-width: 480px) {
-  .header-content {
-    padding: var(--spacing-xs);
-  }
+.header-content {
+  padding: var(--spacing-xs);
+}
 
-  .logo {
-    font-size: 1.25rem;
-  }
+.logo {
+  font-size: 1.25rem;
+}
 
-  .main-nav ul {
-    gap: var(--spacing-xs);
-  }
+.main-nav ul {
+  gap: var(--spacing-xs);
+}
 
-  .main-nav a {
-    font-size: 0.875rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
+.main-nav a {
+  font-size: 0.875rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
 
-  .user-name {
-    font-size: 0.875rem;
-  }
+.user-name {
+  font-size: 0.875rem;
+}
 
-  .modal-header {
-    padding: var(--spacing-md);
-  }
+.modal-header {
+  padding: var(--spacing-md);
+}
 
-  .modal-header h2 {
-    font-size: 1.125rem;
-  }
+.modal-header h2 {
+  font-size: 1.125rem;
+}
 
-  .dev-modal-content {
-    max-width: 100%;
-  }
+.dev-modal-content {
+  max-width: 100%;
+}
 
-  .dev-intro {
-    padding: var(--spacing-md);
-    font-size: 0.875rem;
-  }
+.dev-intro {
+  padding: var(--spacing-md);
+  font-size: 0.875rem;
+}
 
-  .dev-link {
-    width: 100%;
-    justify-content: center;
-  }
+.dev-link {
+  width: 100%;
+  justify-content: center;
+}
 }
 
 /* === Print Styles === */
 @media print {
-  .modal,
-  .modal-overlay {
-    display: none !important;
-  }
-
-  .global-header {
-    position: static;
-    box-shadow: none;
-    border-bottom: 1px solid #000;
-  }
-
-  .main-content {
-    margin: 0;
-  }
-
-  .btn,
-  .nav-menu,
-  .theme-toggle {
-    display: none !important;
-  }
-
-  body {
-    background: white;
-    color: black;
-  }
-
-  a {
-    color: black;
-    text-decoration: none;
-  }
-
-  .task-item,
-  .calendar-day {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
+.modal,
+.modal-overlay {
+  display: none !important;
 }
-	
+
+.global-header {
+  position: static;
+  box-shadow: none;
+  border-bottom: 1px solid #000;
+}
+
+.main-content {
+  margin: 0;
+}
+
+.btn,
+.nav-menu,
+.theme-toggle {
+  display: none !important;
+}
+
+body {
+  background: white;
+  color: black;
+}
+
+a {
+  color: black;
+  text-decoration: none;
+}
+
+.task-item,
+.calendar-day {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+}
+
