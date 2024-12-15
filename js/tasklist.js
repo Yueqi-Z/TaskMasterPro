@@ -1,8 +1,9 @@
 /**
  * tasklist.js - TaskMaster Pro Task Management Implementation
- * Version: 1.5.1
+ * Version: 1.5.2
  * 
  * Change Log:
+ * 1.5.2 - Improved task counter logic and added auto-update
  * 1.5.1 - Added smooth theme transition and improved synchronization
  * 1.5.0 - Added theme support and synchronization
  * 1.4.0 - Added task counter persistence
@@ -10,7 +11,7 @@
  */
 
 // Global Constants
-const APP_VERSION = '1.5.1';
+const APP_VERSION = '1.5.2';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';
 const COUNTER_STORAGE_KEY = 'taskmaster_counters_v1_0';
 const THEME_STORAGE_KEY = 'taskmaster_theme';
@@ -28,6 +29,9 @@ class TaskManager {
         this.itemsPerPage = 10;
         this.totalPages = 1;
 		this.TITLE_MAX_LENGTH = 50;
+		
+		// Counter update timer
+        this.counterUpdateTimer = null;
 
         // Initialize the application
         this.loadTasks();
@@ -37,6 +41,7 @@ class TaskManager {
 		this.initializeFormHandlers();
         this.initializeUserSync();
 		this.initializeDevModal();
+		this.addUpdateTriggers();
     }
 	
 	/**
@@ -302,32 +307,77 @@ class TaskManager {
         const upcomingCount = document.querySelector('.task-counts .count-item:last-child strong');
 
         if (todayCount && upcomingCount) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
 
-            const todayTasks = this.tasks.filter(task => {
+            const counts = this.tasks.reduce((acc, task) => {
+                if (task.completed) return acc;
+                
                 const taskDate = new Date(task.dueDate);
-                taskDate.setHours(0, 0, 0, 0);
-                return !task.completed && 
-                       taskDate.getTime() === today.getTime();
-            });
-
-            const upcomingTasks = this.tasks.filter(task => {
-                const taskDate = new Date(task.dueDate);
-                taskDate.setHours(0, 0, 0, 0);
-                return !task.completed && 
-                       taskDate.getTime() > today.getTime();
-            });
+                const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+                
+                if (taskDay.getTime() === today.getTime()) {
+                    acc.today++;
+                } else if (taskDay.getTime() > today.getTime()) {
+                    acc.upcoming++;
+                }
+                
+                return acc;
+            }, { today: 0, upcoming: 0 });
 
             const counters = {
-                today: todayTasks.length,
-                upcoming: upcomingTasks.length,
-                lastUpdate: new Date().toISOString()
+                ...counts,
+                lastUpdate: now.toISOString()
             };
 
             this.updateCounterDisplay(counters);
             localStorage.setItem(COUNTER_STORAGE_KEY, JSON.stringify(counters));
+            this.scheduleNextUpdate();
         }
+    }
+	
+	/**
+     * Schedule next counter update at midnight
+     */
+    scheduleNextUpdate() {
+        if (this.counterUpdateTimer) {
+            clearTimeout(this.counterUpdateTimer);
+        }
+
+        const now = new Date();
+        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const timeUntilMidnight = tomorrow - now;
+
+        this.counterUpdateTimer = setTimeout(() => {
+            this.updateTaskCounts();
+        }, timeUntilMidnight);
+    }
+	
+	/**
+     * Add update triggers for task counters
+     */
+    addUpdateTriggers() {
+        // Task completion status change
+        document.addEventListener('taskStatusChanged', () => {
+            this.updateTaskCounts();
+        });
+
+        // New task added
+        document.addEventListener('taskAdded', () => {
+            this.updateTaskCounts();
+        });
+
+        // Task deleted
+        document.addEventListener('taskDeleted', () => {
+            this.updateTaskCounts();
+        });
+
+        // Task edited
+        document.addEventListener('taskEdited', () => {
+            this.updateTaskCounts();
+        });
     }
 
     /**
@@ -439,35 +489,36 @@ class TaskManager {
 		e.target.reset();
 	}
 
-	/**
-	 * Handle edit task submission
-	 * @param {Event} e - Form submit event
-	 */
-	handleEditTaskSubmit(e) {
-		e.preventDefault();
-		
-		const formData = new FormData(e.target);
-		const title = formData.get('taskTitle').trim();
-		
-		// Validate title length
-		if (title.length === 0 || title.length > this.TITLE_MAX_LENGTH) {
-			return;
-		}
-		
-		const taskId = formData.get('taskId');
-		const task = this.tasks.find(t => t.id === taskId);
-		
-		if (task) {
-			task.title = title;
-			task.description = formData.get('taskDesc');
-			task.dueDate = formData.get('taskDue');
-			task.priority = formData.get('taskPriority');
-			
-			this.saveTasks();
-			this.renderTasks();
-			this.closeModal('editTaskModal');
-		}
-	}
+    /**
+     * Handle edit task submission
+     * @param {Event} e - Form submit event
+     */
+    handleEditTaskSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const title = formData.get('taskTitle').trim();
+        
+        if (title.length === 0 || title.length > this.TITLE_MAX_LENGTH) {
+            return;
+        }
+        
+        const taskId = formData.get('taskId');
+        const task = this.tasks.find(t => t.id === taskId);
+        
+        if (task) {
+            task.title = title;
+            task.description = formData.get('taskDesc');
+            task.dueDate = formData.get('taskDue');
+            task.priority = formData.get('taskPriority');
+            
+            this.saveTasks();
+            this.renderTasks();
+            this.closeModal('editTaskModal');
+            // Dispatch task edited event
+            document.dispatchEvent(new Event('taskEdited'));
+        }
+    }
 
 
     /**
@@ -479,6 +530,8 @@ class TaskManager {
         this.saveTasks();
         this.renderTasks();
         this.updateTaskCounts();
+        // Dispatch task added event
+        document.dispatchEvent(new Event('taskAdded'));
     }
 
     /**
@@ -490,6 +543,8 @@ class TaskManager {
         this.saveTasks();
         this.renderTasks();
         this.updateTaskCounts();
+        // Dispatch task deleted event
+        document.dispatchEvent(new Event('taskDeleted'));
     }
 
     /**
@@ -513,6 +568,8 @@ class TaskManager {
             
             this.saveTasks();
             this.updateTaskCounts();
+            // Dispatch task status change event
+            document.dispatchEvent(new Event('taskStatusChanged'));
         }
     }
 
@@ -534,7 +591,7 @@ class TaskManager {
         this.openModal('editTaskModal');
     }
 
-/**
+	/**
      * Render tasks to the UI
      */
     renderTasks() {

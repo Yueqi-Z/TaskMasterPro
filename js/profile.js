@@ -1,14 +1,14 @@
 /**
  * profile.js - TaskMaster Pro Profile Implementation
- * Version: 1.2.2
+ * Version: 1.2.3
  * 
  * Change Log:
+ * 1.2.3 - Fixed overdue tasks calculation to include today's expired tasks
  * 1.2.2 - Fixed user data synchronization across pages and enhanced data validation
  * 1.2.1 - Added smooth theme transition handling
  * 1.2.0 - Added global theme management
  * 1.1.0 - Modified email update and statistics features
  */
-
 // Global Constants
 const APP_VERSION = '1.2.2';
 const LOCAL_STORAGE_KEY = 'taskmaster_tasks_v1_3';     // Shared with task management
@@ -435,18 +435,29 @@ class ProfileManager {
      * Calculate task statistics
      */
     calculateTaskStatistics(tasks) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
         return {
             total: tasks.length,
             pending: tasks.filter(task => !task.completed).length,
             completed: tasks.filter(task => task.completed).length,
             overdue: tasks.filter(task => {
+                // Skip completed tasks
                 if (task.completed) return false;
+                
                 const dueDate = new Date(task.dueDate);
-                dueDate.setHours(0, 0, 0, 0);
-                return dueDate < today;
+                
+                // For today's tasks, check if the specific time has passed
+                if (dueDate.getDate() === today.getDate() &&
+                    dueDate.getMonth() === today.getMonth() &&
+                    dueDate.getFullYear() === today.getFullYear()) {
+                    return dueDate < now;  // Compare with current time
+                }
+                
+                // For other days, compare just the dates
+                const taskDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                return taskDay < today;
             }).length
         };
     }
