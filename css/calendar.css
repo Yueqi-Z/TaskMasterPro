@@ -86,6 +86,10 @@
   font-size: 0.875rem;
 }
 
+.calendar-header span::before {
+  content: attr(data-full-day);
+}
+
 /* Calendar Body */
 .calendar-body {
   display: grid;
@@ -557,6 +561,10 @@
   .calendar-header span {
     font-size: 0.75rem;
     padding: var(--spacing-sm);
+  }
+  
+  .calendar-header span::before {
+    content: attr(data-short-day);
   }
 
   /* Calendar Days */
