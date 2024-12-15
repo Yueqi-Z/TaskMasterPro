@@ -167,11 +167,30 @@ body {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
 }
 
 .user-name {
-  font-weight: 500;
-  color: var(--header-text);
+  font-weight: 600;
+  color: var(--primary-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  position: relative;
+}
+
+.user-name::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.user-name:hover::after {
+  transform: scaleX(1);
 }
 
 
