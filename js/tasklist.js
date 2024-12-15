@@ -27,12 +27,14 @@ class TaskManager {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         this.totalPages = 1;
+		this.TITLE_MAX_LENGTH = 50;
 
         // Initialize the application
         this.loadTasks();
         this.initializeTheme();
         this.initializeEventListeners();
         this.initializeTaskCounters();
+		this.initializeFormHandlers();
         this.initializeUserSync();
 		this.initializeDevModal();
     }
@@ -367,58 +369,106 @@ class TaskManager {
         setTimeout(() => warningDiv.remove(), 5000);
     }
 
-    /**
-     * Handle new task submission
-     * @param {Event} e - Form submit event
-     */
-    handleTaskSubmit(e) {
-        e.preventDefault();
-        
-        if (this.tasks.length >= MAX_TASKS) {
-            this.showTaskLimitWarning();
-            return;
-        }
-        
-        const formData = new FormData(e.target);
-        const task = {
-            id: Date.now().toString(),
-            title: formData.get('taskTitle'),
-            description: formData.get('taskDesc'),
-            dueDate: formData.get('taskDue'),
-            priority: formData.get('taskPriority'),
-            completed: false,
-            createdAt: new Date().toISOString()
-        };
 
-        this.addTask(task);
-        this.closeModal('taskModal');
-        e.target.reset();
-    }
+	/**
+	 * Initialize form handlers for character counting
+	 */
+	initializeFormHandlers() {
+		const taskTitle = document.getElementById('taskTitle');
+		const editTaskTitle = document.getElementById('editTaskTitle');
+		
+		if (taskTitle) {
+			taskTitle.addEventListener('input', (e) => this.updateCharCount(e.target));
+		}
+		if (editTaskTitle) {
+			editTaskTitle.addEventListener('input', (e) => this.updateCharCount(e.target));
+		}
+	}
 
-    /**
-     * Handle edit task submission
-     * @param {Event} e - Form submit event
-     */
-    handleEditTaskSubmit(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(e.target);
-        const taskId = formData.get('taskId');
-        const task = this.tasks.find(t => t.id === taskId);
-        
-        if (task) {
-            task.title = formData.get('taskTitle');
-            task.description = formData.get('taskDesc');
-            task.dueDate = formData.get('taskDue');
-            task.priority = formData.get('taskPriority');
-            
-            this.saveTasks();
-            this.renderTasks();
-            this.closeModal('editTaskModal');
-        }
-    }
+	/**
+	 * Update character count display
+	 * @param {HTMLInputElement} input - Input element to count characters
+	 */
+	updateCharCount(input) {
+		const counter = input.parentElement.querySelector('.char-count');
+		if (!counter) return;
 
-    // ... [Previous code for task manipulation methods remains unchanged]
+		const length = input.value.length;
+		counter.textContent = `${length}/${this.TITLE_MAX_LENGTH}`;
+
+		counter.classList.remove('near-limit', 'at-limit');
+		if (length >= this.TITLE_MAX_LENGTH) {
+			counter.classList.add('at-limit');
+		} else if (length >= this.TITLE_MAX_LENGTH * 0.8) {
+			counter.classList.add('near-limit');
+		}
+	}
+
+	/**
+	 * Handle new task submission
+	 * @param {Event} e - Form submit event
+	 */
+	handleTaskSubmit(e) {
+		e.preventDefault();
+		
+		if (this.tasks.length >= MAX_TASKS) {
+			this.showTaskLimitWarning();
+			return;
+		}
+		
+		const formData = new FormData(e.target);
+		const title = formData.get('taskTitle').trim();
+		
+		// Validate title length
+		if (title.length === 0 || title.length > this.TITLE_MAX_LENGTH) {
+			return;
+		}
+
+		const task = {
+			id: Date.now().toString(),
+			title: title,
+			description: formData.get('taskDesc'),
+			dueDate: formData.get('taskDue'),
+			priority: formData.get('taskPriority'),
+			completed: false,
+			createdAt: new Date().toISOString()
+		};
+
+		this.addTask(task);
+		this.closeModal('taskModal');
+		e.target.reset();
+	}
+
+	/**
+	 * Handle edit task submission
+	 * @param {Event} e - Form submit event
+	 */
+	handleEditTaskSubmit(e) {
+		e.preventDefault();
+		
+		const formData = new FormData(e.target);
+		const title = formData.get('taskTitle').trim();
+		
+		// Validate title length
+		if (title.length === 0 || title.length > this.TITLE_MAX_LENGTH) {
+			return;
+		}
+		
+		const taskId = formData.get('taskId');
+		const task = this.tasks.find(t => t.id === taskId);
+		
+		if (task) {
+			task.title = title;
+			task.description = formData.get('taskDesc');
+			task.dueDate = formData.get('taskDue');
+			task.priority = formData.get('taskPriority');
+			
+			this.saveTasks();
+			this.renderTasks();
+			this.closeModal('editTaskModal');
+		}
+	}
+
 
     /**
      * Add a new task
@@ -753,32 +803,77 @@ class TaskManager {
         }
     }
 
-    /**
-     * Initialize drag and drop functionality
-     */
-    initializeDragAndDrop() {
-        const taskList = document.getElementById('taskList');
-        if (!taskList) return;
+	/**
+	 * Initialize drag and drop functionality with mobile support
+	 */
+	initializeDragAndDrop() {
+		const taskList = document.getElementById('taskList');
+		if (!taskList) return;
 
-        taskList.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const afterElement = this.getDragAfterElement(taskList, e.clientY);
-            const draggedItem = document.querySelector('.task-item.dragging');
-            
-            if (draggedItem) {
-                if (afterElement == null) {
-                    taskList.appendChild(draggedItem);
-                } else {
-                    taskList.insertBefore(draggedItem, afterElement);
-                }
-            }
-        });
+		let touchStartY, initialY;
+		let activeItem = null;
+		let initialOrder = [];
 
-        const taskItems = taskList.querySelectorAll('.task-item');
-        taskItems.forEach(item => {
-            this.addDragListeners(item);
-        });
-    }
+		taskList.addEventListener('touchstart', (e) => {
+			if (e.target.closest('.task-actions') || e.target.closest('.task-checkbox')) {
+				return;
+			}
+
+			const item = e.target.closest('.task-item');
+			if (!item) return;
+
+			touchStartY = e.touches[0].clientY;
+			initialY = item.offsetTop;
+			
+			// Delay drag activation to distinguish between tap and drag
+			setTimeout(() => {
+				if (Math.abs(e.touches[0].clientY - touchStartY) > 5) {
+					activeItem = item;
+					item.classList.add('dragging');
+					item.style.zIndex = '1000';
+					
+					// Save initial order
+					initialOrder = Array.from(taskList.querySelectorAll('.task-item'));
+				}
+			}, 100);
+		});
+
+		taskList.addEventListener('touchmove', (e) => {
+			if (!activeItem) return;
+
+			e.preventDefault();
+			const currentY = e.touches[0].clientY;
+			const deltaY = currentY - touchStartY;
+			
+			activeItem.style.transform = `translateY(${deltaY}px)`;
+			
+			// Update other items position
+			const siblings = Array.from(taskList.querySelectorAll('.task-item:not(.dragging)'));
+			siblings.forEach(sibling => {
+				const rect = sibling.getBoundingClientRect();
+				if (currentY < rect.top + rect.height / 2) {
+					taskList.insertBefore(activeItem, sibling);
+				}
+			});
+		});
+
+		taskList.addEventListener('touchend', () => {
+			if (!activeItem) return;
+			
+			activeItem.classList.remove('dragging');
+			activeItem.style.transform = '';
+			activeItem.style.zIndex = '';
+			
+			this.updateTaskOrder();
+			activeItem = null;
+		});
+
+		// Keep desktop drag and drop functionality
+		const taskItems = taskList.querySelectorAll('.task-item');
+		taskItems.forEach(item => {
+			this.addDragListeners(item);
+		});
+	}
 
     /**
      * Add drag event listeners to task item

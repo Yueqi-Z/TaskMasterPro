@@ -419,60 +419,168 @@
   animation: spin 1s linear infinite;
 }
 
+/* Character Counter Styles */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.char-count {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.char-count.near-limit {
+    color: var(--warning-color);
+}
+
+.char-count.at-limit {
+    color: var(--danger-color);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Task Controls Section */
   .task-controls {
     flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
   }
 
   .task-filters {
     flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%; 
+  }
+
+  .task-filters select {
+    width: 100%;
+    padding: var(--spacing-sm);
   }
 
   .search-bar {
     max-width: 100%;
+    margin-top: var(--spacing-sm);
   }
 
-  .task-meta {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--spacing-sm);
-  }
-
+  /* Task Item Layout */
   .task-item {
+    padding: var(--spacing-md);
     flex-direction: column;
-    align-items: stretch;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+    position: relative;
   }
 
+  /* Task Content Layout */
   .task-content {
-    order: 2;
+    flex: 1;
+	width: 100%;
+    display: flex;
+    gap: var(--spacing-sm);
+    order: 0; /* Restoration of the normal order */
+  }
+  
+
+  .task-checkbox {
+    margin-top: 4px;
   }
 
+  .task-details {
+    flex: 1;
+	min-width: 0;
+    overflow: hidden; /* Ensure that text is correctly truncated */
+  }
+
+  .task-details h3 {
+    font-size: 0.938rem;
+    margin-bottom: var(--spacing-xs);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  .task-details p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit description to two lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Task Meta Information */
+  .task-meta {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Three-column layout: priority-date-operation */
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    margin-top: var(--spacing-xs);
+  }
+  
+   .priority {
+    padding: 2px var(--spacing-xs);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .due-date {
+    text-align: right;
+    font-size: 0.813rem;
+  }
+
+  /* Task Actions */
+  .task-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+  }
+
+  .task-actions .btn {
+    padding: var(--spacing-xs);
+  }
+
+  /* Drag Handle */
   .task-drag-handle {
-    position: absolute;
-    top: var(--spacing-sm);
-    left: var(--spacing-sm);
-    background-color: var(--background-light);
+    display: none;
   }
 
+  /* Pagination Controls */
   .pagination-controls {
     flex-direction: column;
     gap: var(--spacing-md);
-    align-items: stretch;
+    align-items: center;
+    padding: var(--spacing-lg) 0;
   }
 
   .items-per-page {
     justify-content: center;
+    width: 100%;
+    gap: var(--spacing-sm);
+  }
+
+  .items-per-page select {
+    width: auto;
+    min-width: 70px;
   }
 
   .pagination-buttons {
     justify-content: center;
+    width: 100%;
+    gap: var(--spacing-sm);
+  }
+
+  .page-info {
+    font-size: 0.875rem;
   }
 }
 
+/* Small Mobile Breakpoint */
 @media (max-width: 480px) {
   .task-item {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
   }
 
   .task-details h3 {
@@ -481,10 +589,38 @@
 
   .task-details p {
     font-size: 0.813rem;
+    -webkit-line-clamp: 1;
   }
 
   .priority {
     font-size: 0.75rem;
     padding: 2px var(--spacing-xs);
+  }
+
+  .due-date {
+    font-size: 0.75rem;
+  }
+
+  /* Reduce button size */
+  .task-actions .btn {
+    padding: 4px;
+  }
+
+  .task-actions .btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+
+  .pagination-controls {
+    padding: var(--spacing-md) 0;
+  }
+
+  .items-per-page {
+    font-size: 0.813rem;
+  }
+
+  .page-info {
+    font-size: 0.813rem;
   }
 }
